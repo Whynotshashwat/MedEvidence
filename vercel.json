@@ -1,11 +1,12 @@
 {
-  "rewrites": [
-    { "source": "/((?!api/).*)", "destination": "/api" }
-  ],
+  "outputDirectory": "public",
+  "installCommand": "npm install",
   "functions": {
     "api/index.js": {
-      "maxDuration": 10,
-      "includeFiles": "**"
+      "maxDuration": 10
     }
-  }
+  },
+  "rewrites": [
+    { "source": "/((?!api/).*)", "destination": "/api" }
+  ]
 }
