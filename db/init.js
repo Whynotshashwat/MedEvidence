@@ -2,7 +2,8 @@ import Database from "better-sqlite3";
 import { readFileSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
-import { hashSync } from "bcryptjs";
+import bcryptjs from "bcryptjs";
+const { hashSync } = bcryptjs;
 import { v4 as uuid } from "uuid";
 import { randomBytes } from "crypto";
 

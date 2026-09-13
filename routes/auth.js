@@ -1,5 +1,6 @@
 import { Router } from "express";
-import { compareSync, hashSync } from "bcryptjs";
+import bcryptjs from "bcryptjs";
+const { compareSync, hashSync } = bcryptjs;
 import { v4 as uuid } from "uuid";
 import { randomBytes } from "crypto";
 import { getDb } from "../db/init.js";
