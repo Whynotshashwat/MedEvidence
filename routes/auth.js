@@ -10,7 +10,7 @@ import { rateLimit } from "../middleware/rateLimit.js";
 
 const router = Router();
 
-const loginLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 10, message: "Too many login attempts, try again later" });
+const loginLimiter = rateLimit({ windowMs: 1 * 60 * 1000, max: 60, message: "Too many login attempts, try again later" });
 
 const VALID_ROLES = ["admin", "doctor", "nurse", "auditor"];
 const MAX_USERNAME = 50;
