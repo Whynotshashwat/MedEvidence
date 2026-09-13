@@ -3,7 +3,7 @@ RUN apk add --no-cache python3 make g++
 RUN addgroup -S app && adduser -S app -G app
 WORKDIR /app
 COPY package*.json ./
-RUN npm ci --omit=dev
+RUN npm install --omit=dev
 COPY . .
 RUN chown -R app:app /app
 USER app
