@@ -2,6 +2,7 @@ const API = (() => {
   const BASE = "/api";
   let token = localStorage.getItem("medevidence_token");
   let currentUser = JSON.parse(localStorage.getItem("medevidence_user") || "null");
+  let onUnauthorized = null;
 
   async function request(method, path, body) {
     const headers = { "Content-Type": "application/json" };
@@ -11,11 +12,12 @@ const API = (() => {
     if (body) opts.body = JSON.stringify(body);
 
     const res = await fetch(`${BASE}${path}`, opts);
-    const data = await res.json();
+    let data;
+    try { data = await res.json(); } catch { data = { error: `HTTP ${res.status}: ${res.statusText}` }; }
 
     if (res.status === 401) {
       logout();
-      window.location.hash = "#/login";
+      if (onUnauthorized) onUnauthorized();
       throw new Error("Session expired");
     }
     if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
@@ -42,6 +44,7 @@ const API = (() => {
     getToken() { return token; },
     getUser() { return currentUser; },
     isLoggedIn() { return !!token && !!currentUser; },
+    onUnauthorized(fn) { onUnauthorized = fn; },
   };
 
   function logout() {

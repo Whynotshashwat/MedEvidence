@@ -6,66 +6,80 @@
   <title>MedEvidence — Cryptographic Clinical Evidence</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link rel="stylesheet" href="/css/styles.css">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏥</text></svg>">
 </head>
 <body>
   <div id="app">
-    <!-- Login view -->
     <div id="view-login" class="view" style="display:none">
       <div class="login-wrapper">
         <div class="login-left">
+          <div class="login-bg-shapes">
+            <div class="shape shape-1"></div>
+            <div class="shape shape-2"></div>
+            <div class="shape shape-3"></div>
+          </div>
           <div class="login-brand">
             <div class="login-logo"><i class="fa-solid fa-shield-halved"></i></div>
             <h1>MedEvidence</h1>
-            <p>Cryptographic AI Clinical Evidence System</p>
+            <p class="login-tagline">Cryptographic AI Clinical Evidence System</p>
           </div>
           <div class="login-features">
             <div class="login-feature">
-              <i class="fa-solid fa-lock"></i>
-              <span>Tamper-proof evidence receipts via CooL SDK</span>
+              <div class="feature-icon"><i class="fa-solid fa-lock"></i></div>
+              <div>
+                <strong>Tamper-Proof Evidence</strong>
+                <span>CooL SDK cryptographic receipts</span>
+              </div>
             </div>
             <div class="login-feature">
-              <i class="fa-solid fa-robot"></i>
-              <span>AI-powered triage with cryptographic verification</span>
+              <div class="feature-icon"><i class="fa-solid fa-robot"></i></div>
+              <div>
+                <strong>AI-Powered Triage</strong>
+                <span>Automated clinical scoring</span>
+              </div>
             </div>
             <div class="login-feature">
-              <i class="fa-solid fa-clipboard-check"></i>
-              <span>Full audit trail for compliance and legal review</span>
+              <div class="feature-icon"><i class="fa-solid fa-clipboard-check"></i></div>
+              <div>
+                <strong>Full Audit Trail</strong>
+                <span>Compliance-ready logging</span>
+              </div>
             </div>
           </div>
         </div>
         <div class="login-right">
           <div class="login-card">
-            <h2>Sign In</h2>
-            <p class="login-subtitle">Enter your credentials to access the dashboard</p>
+            <button id="login-theme-toggle" class="btn btn-sm btn-ghost" style="position:absolute;top:1rem;right:1rem" title="Toggle dark mode">
+              <i class="fa-solid fa-moon"></i>
+            </button>
+            <div class="login-card-icon"><i class="fa-solid fa-arrow-right-to-bracket"></i></div>
+            <h2>Welcome back</h2>
+            <p class="login-subtitle">Sign in to your account</p>
             <form id="login-form">
               <div class="field">
-                <label><i class="fa-solid fa-user"></i> Username</label>
-                <input type="text" id="login-user" autocomplete="username" required placeholder="Enter username">
+                <label>Username</label>
+                <div class="input-icon-wrap"><i class="fa-solid fa-user"></i><input type="text" id="login-user" autocomplete="username" required placeholder="Enter username"></div>
               </div>
               <div class="field">
-                <label><i class="fa-solid fa-lock"></i> Password</label>
-                <input type="password" id="login-pass" autocomplete="current-password" required placeholder="Enter password">
+                <label>Password</label>
+                <div class="input-icon-wrap"><i class="fa-solid fa-lock"></i><input type="password" id="login-pass" autocomplete="current-password" required placeholder="Enter password"></div>
               </div>
-              <button type="submit" class="btn btn-primary btn-full">Sign In</button>
+              <button type="submit" class="btn btn-primary btn-full btn-lg">Sign In</button>
               <p id="login-error" class="error-text" style="display:none"></p>
             </form>
-            <div class="login-footer-text">
-              <span>Demo: admin / admin123</span>
-            </div>
+            <div class="login-footer-text">Demo: <code>admin</code> / <code>admin123</code></div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Main app shell -->
     <div id="app-shell" style="display:none">
-      <!-- Top header bar -->
       <header id="top-header">
         <div class="header-left">
+          <button class="sidebar-toggle" id="sidebar-toggle"><i class="fa-solid fa-bars"></i></button>
           <div class="logo-mark"><i class="fa-solid fa-shield-halved"></i></div>
           <span class="brand-text">MedEvidence</span>
         </div>
@@ -76,17 +90,25 @@
           </div>
         </div>
         <div class="header-right">
-          <span id="nav-user" class="header-user"></span>
-          <button id="btn-logout" class="btn btn-sm btn-outline"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+          <button id="theme-toggle" class="btn btn-sm btn-ghost" title="Toggle dark mode">
+            <i class="fa-solid fa-moon"></i>
+          </button>
+          <div class="header-user-info">
+            <div class="avatar" id="nav-avatar">A</div>
+            <div class="user-meta">
+              <span id="nav-user" class="header-user"></span>
+              <span id="nav-role" class="header-role"></span>
+            </div>
+          </div>
+          <button id="btn-logout" class="btn btn-sm btn-ghost"><i class="fa-solid fa-right-from-bracket"></i></button>
         </div>
       </header>
 
       <div id="app-body">
-        <!-- Sidebar navigation -->
         <nav id="sidebar">
           <div class="nav-links">
             <a href="#/dashboard" class="nav-link active" data-route="dashboard">
-              <i class="fa-solid fa-chart-line"></i><span>Dashboard</span>
+              <i class="fa-solid fa-chart-pie"></i><span>Dashboard</span>
             </a>
             <a href="#/patients" class="nav-link" data-route="patients">
               <i class="fa-solid fa-user-injured"></i><span>Patients</span>
@@ -95,27 +117,31 @@
               <i class="fa-solid fa-folder-open"></i><span>Cases</span>
             </a>
             <a href="#/audit" class="nav-link" data-route="audit" data-roles="admin,auditor">
-              <i class="fa-solid fa-scroll"></i><span>Audit Log</span>
+              <i class="fa-solid fa-shield-halved"></i><span>Audit Log</span>
             </a>
+            <a href="#/users" class="nav-link" data-route="users" data-roles="admin">
+              <i class="fa-solid fa-users-gear"></i><span>Users</span>
+            </a>
+          </div>
+          <div class="nav-footer">
+            <div class="nav-version">v2.0.0</div>
           </div>
         </nav>
 
-        <!-- Main content -->
         <main id="main-content">
           <div id="view-dashboard" class="view"></div>
           <div id="view-patients" class="view" style="display:none"></div>
           <div id="view-cases" class="view" style="display:none"></div>
           <div id="view-audit" class="view" style="display:none"></div>
+          <div id="view-users" class="view" style="display:none"></div>
         </main>
       </div>
     </div>
 
-    <!-- Modal overlay -->
     <div id="modal-overlay" class="modal-overlay" style="display:none">
       <div id="modal-content" class="modal-content"></div>
     </div>
 
-    <!-- Toast -->
     <div id="toast-container" class="toast-container"></div>
   </div>
   <script src="/js/api.js"></script>

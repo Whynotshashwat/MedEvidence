@@ -105,6 +105,10 @@ router.post("/", async (req, res) => {
     const patient = db.prepare("SELECT * FROM patients WHERE id = ?").get(patient_id);
     if (!patient) return res.status(404).json({ error: "Patient not found" });
 
+    // Verify user still exists (guards against stale JWT after DB reset)
+    const user = db.prepare("SELECT id FROM users WHERE id = ?").get(req.user.id);
+    if (!user) return res.status(401).json({ error: "User session invalid — please log in again" });
+
     // Validate vitals
     const { heartRate, respRate, temp, systolicBP } = vitalsInput;
     if (typeof heartRate !== "number" || heartRate < 0 || heartRate > 400 ||
