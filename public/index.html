@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MedEvidence — Cryptographic Clinical Evidence</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="/css/styles.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏥</text></svg>">
+</head>
+<body>
+  <div id="app">
+    <!-- Login view -->
+    <div id="view-login" class="view" style="display:none">
+      <div class="login-wrapper">
+        <div class="login-left">
+          <div class="login-brand">
+            <div class="login-logo"><i class="fa-solid fa-shield-halved"></i></div>
+            <h1>MedEvidence</h1>
+            <p>Cryptographic AI Clinical Evidence System</p>
+          </div>
+          <div class="login-features">
+            <div class="login-feature">
+              <i class="fa-solid fa-lock"></i>
+              <span>Tamper-proof evidence receipts via CooL SDK</span>
+            </div>
+            <div class="login-feature">
+              <i class="fa-solid fa-robot"></i>
+              <span>AI-powered triage with cryptographic verification</span>
+            </div>
+            <div class="login-feature">
+              <i class="fa-solid fa-clipboard-check"></i>
+              <span>Full audit trail for compliance and legal review</span>
+            </div>
+          </div>
+        </div>
+        <div class="login-right">
+          <div class="login-card">
+            <h2>Sign In</h2>
+            <p class="login-subtitle">Enter your credentials to access the dashboard</p>
+            <form id="login-form">
+              <div class="field">
+                <label><i class="fa-solid fa-user"></i> Username</label>
+                <input type="text" id="login-user" autocomplete="username" required placeholder="Enter username">
+              </div>
+              <div class="field">
+                <label><i class="fa-solid fa-lock"></i> Password</label>
+                <input type="password" id="login-pass" autocomplete="current-password" required placeholder="Enter password">
+              </div>
+              <button type="submit" class="btn btn-primary btn-full">Sign In</button>
+              <p id="login-error" class="error-text" style="display:none"></p>
+            </form>
+            <div class="login-footer-text">
+              <span>Demo: admin / admin123</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main app shell -->
+    <div id="app-shell" style="display:none">
+      <!-- Top header bar -->
+      <header id="top-header">
+        <div class="header-left">
+          <div class="logo-mark"><i class="fa-solid fa-shield-halved"></i></div>
+          <span class="brand-text">MedEvidence</span>
+        </div>
+        <div class="header-center">
+          <div class="search-bar">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" placeholder="Search patients, cases..." id="global-search">
+          </div>
+        </div>
+        <div class="header-right">
+          <span id="nav-user" class="header-user"></span>
+          <button id="btn-logout" class="btn btn-sm btn-outline"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+        </div>
+      </header>
+
+      <div id="app-body">
+        <!-- Sidebar navigation -->
+        <nav id="sidebar">
+          <div class="nav-links">
+            <a href="#/dashboard" class="nav-link active" data-route="dashboard">
+              <i class="fa-solid fa-chart-line"></i><span>Dashboard</span>
+            </a>
+            <a href="#/patients" class="nav-link" data-route="patients">
+              <i class="fa-solid fa-user-injured"></i><span>Patients</span>
+            </a>
+            <a href="#/cases" class="nav-link" data-route="cases">
+              <i class="fa-solid fa-folder-open"></i><span>Cases</span>
+            </a>
+            <a href="#/audit" class="nav-link" data-route="audit" data-roles="admin,auditor">
+              <i class="fa-solid fa-scroll"></i><span>Audit Log</span>
+            </a>
+          </div>
+        </nav>
+
+        <!-- Main content -->
+        <main id="main-content">
+          <div id="view-dashboard" class="view"></div>
+          <div id="view-patients" class="view" style="display:none"></div>
+          <div id="view-cases" class="view" style="display:none"></div>
+          <div id="view-audit" class="view" style="display:none"></div>
+        </main>
+      </div>
+    </div>
+
+    <!-- Modal overlay -->
+    <div id="modal-overlay" class="modal-overlay" style="display:none">
+      <div id="modal-content" class="modal-content"></div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast-container" class="toast-container"></div>
+  </div>
+  <script src="/js/api.js"></script>
+  <script src="/js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,27 @@
+{
+  "name": "medevidence",
+  "version": "2.0.0",
+  "description": "Cryptographically proven AI clinical recommendations with tamper detection",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "test": "node test.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "keywords": ["medical", "evidence", "cryptographic", "blockchain", "clinical"],
+  "license": "Apache-2.0",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "better-sqlite3": "^11.8.1",
+    "cool-nwc": "^3.0.0",
+    "cors": "^2.8.5",
+    "express": "^5.2.1",
+    "helmet": "^8.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "uuid": "^11.1.0"
+  }
+}
