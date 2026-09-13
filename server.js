@@ -5,21 +5,40 @@ import { fileURLToPath } from "url";
 import { dirname, join } from "path";
 import { getDb, closeDb } from "./db/init.js";
 import { requireAuth } from "./middleware/auth.js";
+import { rateLimit } from "./middleware/rateLimit.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-// Ensure database is initialized
 getDb();
 
 const app = express();
 
-// Security
-app.use(helmet({ contentSecurityPolicy: false, crossOriginEmbedderPolicy: false }));
+// Security headers
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+      fontSrc: ["'self'", "https://fonts.gstatic.com"],
+      imgSrc: ["'self'", "data:"],
+      connectSrc: ["'self'"],
+      frameSrc: ["'none'"],
+      objectSrc: ["'none'"],
+      baseUri: ["'self'"],
+      formAction: ["'self'"],
+    },
+  },
+  crossOriginEmbedderPolicy: false,
+}));
 
 const isProduction = process.env.NODE_ENV === "production";
-app.use(cors(isProduction ? { origin: process.env.ALLOWED_ORIGIN || "http://localhost:3000" } : {}));
+app.use(cors(isProduction ? { origin: process.env.ALLOWED_ORIGIN || false } : { origin: "http://localhost:3000" }));
 app.use(express.json({ limit: "1mb" }));
+
+// Global rate limiting
+app.use("/api", rateLimit({ windowMs: 15 * 60 * 1000, max: 200, message: "Too many requests" }));
 
 // Request logging
 app.use((req, _res, next) => {
@@ -45,7 +64,7 @@ app.use("/api/audit", auditRoutes);
 
 // Health check
 app.get("/api/health", (_req, res) => {
-  res.json({ status: "ok", timestamp: new Date().toISOString(), version: "2.0.0" });
+  res.json({ status: "ok", timestamp: new Date().toISOString() });
 });
 
 // Dashboard stats
@@ -77,7 +96,7 @@ app.get("/api/dashboard", requireAuth, (req, res) => {
   });
 });
 
-// SPA fallback — serve index.html for all non-API routes
+// SPA fallback
 app.get("/{*splat}", (req, res) => {
   if (req.path.startsWith("/api/")) {
     return res.status(404).json({ error: "Not found" });
@@ -85,7 +104,7 @@ app.get("/{*splat}", (req, res) => {
   res.sendFile(join(__dirname, "public", "index.html"));
 });
 
-// Error handler
+// Error handler — never leak internal details
 app.use((err, _req, res, _next) => {
   console.error("[error]", err);
   res.status(500).json({ error: "Internal server error" });
@@ -94,9 +113,7 @@ app.use((err, _req, res, _next) => {
 const PORT = process.env.PORT || 3000;
 const server = app.listen(PORT, () => {
   console.log(`\nMedEvidence v2 — http://localhost:${PORT}`);
-  console.log(`  Default admin: admin / admin123`);
-  console.log(`  Doctor: dr.jones / doc123`);
-  console.log(`  Auditor: auditor / audit123\n`);
+  console.log("  Users seeded on first run. Check server logs for credentials.\n");
 });
 
 for (const signal of ["SIGINT", "SIGTERM"]) {

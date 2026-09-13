@@ -1,23 +1,30 @@
 import jwt from "jsonwebtoken";
+import { randomBytes } from "crypto";
 
-const isProduction = process.env.NODE_ENV === "production";
-if (isProduction && !process.env.JWT_SECRET) {
-  console.error("[FATAL] JWT_SECRET environment variable is required in production");
-  process.exit(1);
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+  if (process.env.NODE_ENV === "production") {
+    console.error("[FATAL] JWT_SECRET environment variable is required in production");
+    process.exit(1);
+  }
+  // Dev fallback: generate random secret, warn once
+  const devSecret = randomBytes(32).toString("hex");
+  console.warn("[WARN] JWT_SECRET not set. Using random dev secret. Tokens will NOT survive restarts.");
+  var _JWT_SECRET = devSecret;
 }
-const JWT_SECRET = process.env.JWT_SECRET || "medevidence-dev-secret-change-in-prod";
+const SECRET = JWT_SECRET || _JWT_SECRET;
 const JWT_EXPIRES = process.env.JWT_EXPIRES || "24h";
 
 export function signToken(user) {
   return jwt.sign(
     { id: user.id, username: user.username, role: user.role, full_name: user.full_name },
-    JWT_SECRET,
+    SECRET,
     { expiresIn: JWT_EXPIRES }
   );
 }
 
 export function verifyToken(token) {
-  return jwt.verify(token, JWT_SECRET);
+  return jwt.verify(token, SECRET);
 }
 
 export function requireAuth(req, res, next) {

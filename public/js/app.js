@@ -30,6 +30,11 @@
     return h("span", { class: `badge badge-${cls}` }, text);
   }
 
+  function esc(s) {
+    if (s == null) return "";
+    return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+  }
+
   function renderError(container, message) {
     container.innerHTML = "";
     container.appendChild(h("div", { class: "empty" }, h("i", { class: "fa-solid fa-triangle-exclamation" }), h("h3", {}, "Something went wrong"), h("p", {}, message)));
@@ -278,8 +283,8 @@
           <h2>Edit Patient</h2>
           <form id="edit-patient-form">
             <div class="field-row">
-              <div class="field"><label>First Name</label><input name="first_name" value="${p.first_name || ""}" required></div>
-              <div class="field"><label>Last Name</label><input name="last_name" value="${p.last_name || ""}" required></div>
+              <div class="field"><label>First Name</label><input name="first_name" value="${esc(p.first_name || "")}" required></div>
+              <div class="field"><label>Last Name</label><input name="last_name" value="${esc(p.last_name || "")}" required></div>
             </div>
             <div class="field-row">
               <div class="field"><label>Date of Birth</label><input name="dob" type="date" value="${p.dob || ""}" required></div>
@@ -313,7 +318,7 @@
       $("#btn-new-case")?.addEventListener("click", () => {
         showModal(`
           <h2>New Triage Case</h2>
-          <p style="color:var(--fg3);margin-bottom:1.25rem;font-size:.85rem">Patient: ${p.first_name} ${p.last_name} (${p.mrn})</p>
+          <p style="color:var(--fg3);margin-bottom:1.25rem;font-size:.85rem">Patient: ${esc(p.first_name)} ${esc(p.last_name)} (${esc(p.mrn)})</p>
           <form id="new-case-form">
             <div class="field-row">
               <div class="field"><label>Heart Rate (bpm)</label><input name="heartRate" type="number" min="0" max="400" value="130" required></div>
@@ -561,7 +566,7 @@
                   <option value="admin">Admin</option>
                 </select>
               </div>
-              <div class="field"><label>Password</label><input name="password" id="new-user-pw" value="${pw}" required></div>
+              <div class="field"><label>Password</label><input name="password" id="new-user-pw" value="${esc(pw)}" required></div>
             </div>
             <div style="margin-bottom:1rem;font-size:.78rem;color:var(--fg3)">
               Auto-generated password shown above. Copy it before saving — it won't be shown again.
@@ -585,10 +590,10 @@
             showModal(`
               <h2>User Created</h2>
               <div style="padding:1.25rem;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);margin:1rem 0">
-                <div style="display:flex;justify-content:space-between;margin-bottom:.5rem"><span style="color:var(--fg3);font-size:.82rem">Username</span><strong>${res.user.username}</strong></div>
-                <div style="display:flex;justify-content:space-between;margin-bottom:.5rem"><span style="color:var(--fg3);font-size:.82rem">Full Name</span><strong>${res.user.full_name}</strong></div>
-                <div style="display:flex;justify-content:space-between;margin-bottom:.5rem"><span style="color:var(--fg3);font-size:.82rem">Role</span><strong>${res.user.role}</strong></div>
-                <div style="display:flex;justify-content:space-between;border-top:1px solid var(--border);padding-top:.5rem;margin-top:.5rem"><span style="color:var(--fg3);font-size:.82rem">Password</span><code style="background:var(--bg3);padding:.2rem .5rem;border-radius:5px;font-weight:700;color:var(--primary)">${res.password}</code></div>
+                <div style="display:flex;justify-content:space-between;margin-bottom:.5rem"><span style="color:var(--fg3);font-size:.82rem">Username</span><strong>${esc(res.user.username)}</strong></div>
+                <div style="display:flex;justify-content:space-between;margin-bottom:.5rem"><span style="color:var(--fg3);font-size:.82rem">Full Name</span><strong>${esc(res.user.full_name)}</strong></div>
+                <div style="display:flex;justify-content:space-between;margin-bottom:.5rem"><span style="color:var(--fg3);font-size:.82rem">Role</span><strong>${esc(res.user.role)}</strong></div>
+                <div style="display:flex;justify-content:space-between;border-top:1px solid var(--border);padding-top:.5rem;margin-top:.5rem"><span style="color:var(--fg3);font-size:.82rem">Password</span><code style="background:var(--bg3);padding:.2rem .5rem;border-radius:5px;font-weight:700;color:var(--primary)">${esc(res.password)}</code></div>
               </div>
               <p style="font-size:.78rem;color:var(--red);margin-bottom:1rem"><i class="fa-solid fa-triangle-exclamation"></i> Copy this password now. It will NOT be shown again.</p>
               <button type="button" class="btn btn-primary" onclick="hideModal()">Done</button>

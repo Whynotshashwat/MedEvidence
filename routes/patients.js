@@ -10,8 +10,10 @@ router.use(requireAuth);
 // List patients with optional search
 router.get("/", (req, res) => {
   const db = getDb();
-  const { search, page = 1, limit = 20 } = req.query;
-  const offset = (Number(page) - 1) * Number(limit);
+  const { search } = req.query;
+  const page = Math.max(1, Number(req.query.page) || 1);
+  const limit = Math.min(100, Math.max(1, Number(req.query.limit) || 20));
+  const offset = (page - 1) * limit;
 
   let patients, total;
   if (search) {

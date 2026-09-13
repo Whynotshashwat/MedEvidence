@@ -42,8 +42,9 @@ function mockModel(vitals) {
 // List cases with filters
 router.get("/", (req, res) => {
   const db = getDb();
-  const { patient_id, status, page = 1, limit = 20 } = req.query;
-  const offset = (Number(page) - 1) * Number(limit);
+  const page = Math.max(1, Number(req.query.page) || 1);
+  const limit = Math.min(100, Math.max(1, Number(req.query.limit) || 20));
+  const offset = (page - 1) * limit;
   const conditions = [];
   const params = [];
 
@@ -52,7 +53,7 @@ router.get("/", (req, res) => {
 
   const where = conditions.length ? "WHERE " + conditions.join(" AND ") : "";
 
-  const cases = db.prepare(`
+    const cases = db.prepare(`
     SELECT c.*, p.first_name, p.last_name, p.mrn, p.dob,
            u.full_name as created_by_name,
            r.score, r.recommend,
@@ -64,10 +65,10 @@ router.get("/", (req, res) => {
     LEFT JOIN evidence e ON e.case_id = c.id
     ${where}
     ORDER BY c.created_at DESC LIMIT ? OFFSET ?
-  `).all(...params, Number(limit), offset);
+  `).all(...params, limit, offset);
 
   const total = db.prepare(`SELECT COUNT(*) as c FROM cases c ${where}`).get(...params).c;
-  res.json({ cases, total, page: Number(page), limit: Number(limit) });
+  res.json({ cases, total, page, limit });
 });
 
 // Get single case with full details
@@ -181,7 +182,7 @@ router.post("/", async (req, res) => {
     });
   } catch (err) {
     console.error("[/cases] error:", err);
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: "Failed to create case" });
   }
 });
 
@@ -220,7 +221,7 @@ router.post("/:id/verify", async (req, res) => {
     res.json(verdict);
   } catch (err) {
     console.error("[/cases/:id/verify] error:", err);
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: "Failed to verify evidence" });
   }
 });
 

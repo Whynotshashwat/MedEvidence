@@ -31,7 +31,7 @@ async function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 // ── Auth ────────────────────────────────────────────────────────────────────
 console.log("\n=== 1. Authentication ===");
 {
-  const r = await api("POST", "/auth/login", { username: "admin", password: "admin123" });
+  const r = await api("POST", "/auth/login", { username: "test", password: "test1234" });
   assert("Login admin returns 200", r.status === 200);
   assert("Token returned", !!r.json.token);
   token = r.json.token;
@@ -123,8 +123,11 @@ console.log("\n=== 5. Audit Log ===");
 // ── Role-based access ──────────────────────────────────────────────────────
 console.log("\n=== 6. Role-Based Access ===");
 {
-  // Login as auditor
-  const login = await api("POST", "/auth/login", { username: "auditor", password: "audit123" });
+  // Create a test auditor via admin API
+  const auditorRes = await api("POST", "/auth/users", { username: "test.auditor", full_name: "Test Auditor", role: "auditor", password: "audit1234" });
+  const auditorPw = auditorRes.json.password || "audit1234";
+  
+  const login = await api("POST", "/auth/login", { username: "test.auditor", password: auditorPw });
   const auditorToken = login.json.token;
   const savedToken = token;
   token = auditorToken;
