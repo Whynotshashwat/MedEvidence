@@ -45,20 +45,27 @@
   function route(name, fn) { routes[name] = fn; }
 
   function navigate(hash) {
-    const path = hash.replace("#/", "").split("/");
+    const raw = hash.replace("#/", "").split("?")[0];
+    const path = raw.split("/");
     const name = path[0] || "dashboard";
     const param = path[1];
     $$(".nav-link").forEach((a) => a.classList.toggle("active", a.dataset.route === name));
     $$(".view").forEach((v) => (v.style.display = "none"));
+    const notFound = $("#not-found-view");
+    if (notFound) notFound.style.display = "none";
     if (routes[name]) {
       const viewEl = $(`#view-${name}`);
       if (viewEl) { viewEl.style.display = "block"; routes[name](viewEl, param); }
     } else {
-      const main = $("#main-content");
-      if (main) {
-        main.style.display = "block";
-        main.innerHTML = '<div class="empty"><i class="fa-solid fa-compass"></i><h3>Page Not Found</h3><p>The page you\'re looking for doesn\'t exist.</p></div>';
+      let nf = $("#not-found-view");
+      if (!nf) {
+        nf = document.createElement("div");
+        nf.id = "not-found-view";
+        nf.className = "view";
+        $("#main-content").appendChild(nf);
       }
+      nf.style.display = "block";
+      nf.innerHTML = '<div class="empty"><i class="fa-solid fa-compass"></i><h3>Page Not Found</h3><p>The page you\'re looking for doesn\'t exist.</p></div>';
     }
   }
 
