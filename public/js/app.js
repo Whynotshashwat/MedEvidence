@@ -485,6 +485,21 @@
             sub.appendChild(h("span", {}, h("i", { class: "fa-solid fa-clock" }), ` Issued: ${formatDate(verdict.subject.issued_at)}`));
             banner.appendChild(sub);
           }
+          // Raw receipt (collapsible)
+          if (verdict.receipt) {
+            const receiptCard = h("div", { class: "card", style: "margin-top:.75rem" });
+            receiptCard.appendChild(h("div", { class: "card-header", style: "cursor:pointer" },
+              h("h3", {}, h("i", { class: "fa-solid fa-code" }), " Coded Receipt"),
+              h("span", { style: "color:var(--fg3);font-size:.75rem" }, "click to expand")
+            ));
+            const receiptBody = h("pre", { style: "display:none;background:var(--bg2);padding:.75rem;border-radius:6px;font-size:.72rem;overflow-x:auto;max-height:300px;overflow-y:auto;white-space:pre-wrap;word-break:break-all" });
+            receiptBody.textContent = JSON.stringify(verdict.receipt, null, 2);
+            receiptCard.appendChild(receiptBody);
+            receiptCard.querySelector(".card-header").addEventListener("click", () => {
+              receiptBody.style.display = receiptBody.style.display === "none" ? "block" : "none";
+            });
+            banner.appendChild(receiptCard);
+          }
         } catch (err) { banner.innerHTML = ""; banner.appendChild(h("div", { class: "verify-banner fail" }, h("i", { class: "fa-solid fa-circle-xmark" }), " Error: " + err.message)); }
       });
 

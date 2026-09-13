@@ -219,7 +219,7 @@ router.post("/:id/verify", async (req, res) => {
     }
 
     auditLog(req, "case.verify", "case", req.params.id, { ok: verdict.ok });
-    res.json(verdict);
+    res.json({ ...verdict, receipt: JSON.parse(evRow.evidence_json), record_id: evRow.record_id, binding_hash: evRow.binding_hash });
   } catch (err) {
     console.error("[/cases/:id/verify] error:", err);
     res.status(500).json({ error: "Failed to verify evidence" });
