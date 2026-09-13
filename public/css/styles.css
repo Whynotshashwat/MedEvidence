@@ -303,3 +303,8 @@ pre{background:var(--bg);border:1px solid var(--border);border-radius:var(--radi
 [data-theme="dark"] .onboarding-overlay{background:rgba(0,0,0,.6)}
 [data-theme="dark"] .onboarding-step{background:var(--bg3)}
 [data-theme="dark"] .onboarding-logo{background:rgba(13,148,136,.1);border-color:var(--primary)}
+
+/* ─── HELP DOT (re-watch onboarding) ────────────────── */
+.help-dot{position:fixed;bottom:1.25rem;right:1.25rem;width:40px;height:40px;border-radius:50%;background:var(--primary);color:#fff;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow-md);z-index:50;transition:transform .2s,box-shadow .2s;font-size:1rem}
+.help-dot:hover{transform:scale(1.1);box-shadow:var(--shadow-lg)}
+.help-dot:active{transform:scale(.95)}

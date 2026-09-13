@@ -102,7 +102,11 @@
   }
 
   function showOnboarding() {
-    if (localStorage.getItem("medev_onboarded")) return;
+    if (localStorage.getItem("medev_onboarded")) {
+      const dot = $("#help-dot");
+      if (dot) dot.style.display = "flex";
+      return;
+    }
     const overlay = $("#onboarding-overlay");
     if (!overlay) return;
     overlay.style.display = "flex";
@@ -112,13 +116,33 @@
     $("#onboarding-skip")?.addEventListener("click", () => {
       localStorage.setItem("medev_onboarded", "1");
       dismissOnboarding();
+      const dot = $("#help-dot");
+      if (dot) dot.style.display = "flex";
     });
     $("#onboarding-start")?.addEventListener("click", () => {
       localStorage.setItem("medev_onboarded", "1");
       overlay.style.display = "none";
+      const dot = $("#help-dot");
+      if (dot) dot.style.display = "flex";
       window.location.hash = "#/patients";
     });
   }
+
+  $("#help-dot")?.addEventListener("click", () => {
+    const overlay = $("#onboarding-overlay");
+    if (!overlay) return;
+    overlay.style.display = "flex";
+    const cb = $("#onboarding-dont-show");
+    if (cb) cb.checked = false;
+    overlay.addEventListener("click", (e) => {
+      if (e.target === overlay) overlay.style.display = "none";
+    });
+    $("#onboarding-skip")?.addEventListener("click", () => { overlay.style.display = "none"; }, { once: true });
+    $("#onboarding-start")?.addEventListener("click", () => {
+      overlay.style.display = "none";
+      window.location.hash = "#/patients";
+    }, { once: true });
+  });
 
   // Sidebar toggle for mobile
   document.addEventListener("click", (e) => {
