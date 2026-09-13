@@ -255,7 +255,10 @@
             h("div", {}, h("h1", {}, `${p.first_name} ${p.last_name}`), h("p", { style: "color:var(--fg3);font-size:.85rem" }, `MRN: ${p.mrn} \u00B7 DOB: ${p.dob} \u00B7 ${p.sex || "N/A"}`))
           )
         ),
-        h("button", { class: "btn btn-primary", id: "btn-new-case" }, h("i", { class: "fa-solid fa-plus" }), " New Case")
+        h("div", { class: "btn-group" },
+          h("button", { class: "btn", id: "btn-edit-patient" }, h("i", { class: "fa-solid fa-pen" }), " Edit"),
+          h("button", { class: "btn btn-primary", id: "btn-new-case" }, h("i", { class: "fa-solid fa-plus" }), " New Case")
+        )
       ));
       const casesCard = h("div", { class: "card" });
       casesCard.appendChild(h("div", { class: "card-header" }, h("h2", {}, h("i", { class: "fa-solid fa-folder-open" }), ` Cases (${p.case_count})`)));
@@ -269,6 +272,44 @@
         table.appendChild(tbody); wrap.appendChild(table); casesCard.appendChild(wrap);
       }
       el.appendChild(casesCard);
+
+      $("#btn-edit-patient")?.addEventListener("click", () => {
+        showModal(`
+          <h2>Edit Patient</h2>
+          <form id="edit-patient-form">
+            <div class="field-row">
+              <div class="field"><label>First Name</label><input name="first_name" value="${p.first_name || ""}" required></div>
+              <div class="field"><label>Last Name</label><input name="last_name" value="${p.last_name || ""}" required></div>
+            </div>
+            <div class="field-row">
+              <div class="field"><label>Date of Birth</label><input name="dob" type="date" value="${p.dob || ""}" required></div>
+              <div class="field"><label>Sex</label>
+                <select name="sex">
+                  <option value="">Select...</option>
+                  <option value="M" ${p.sex === "M" ? "selected" : ""}>Male</option>
+                  <option value="F" ${p.sex === "F" ? "selected" : ""}>Female</option>
+                  <option value="O" ${p.sex === "O" ? "selected" : ""}>Other</option>
+                </select>
+              </div>
+            </div>
+            <div class="btn-group" style="margin-top:1.25rem">
+              <button type="submit" class="btn btn-primary btn-lg">Save Changes</button>
+              <button type="button" class="btn" onclick="hideModal()">Cancel</button>
+            </div>
+          </form>
+        `);
+        document.getElementById("edit-patient-form").addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const fd = new FormData(e.target);
+          try {
+            await API.put(`/patients/${id}`, Object.fromEntries(fd));
+            hideModal();
+            toast("Patient updated");
+            navigate(`#/patients/${id}`);
+          } catch (err) { toast(err.message, "error"); }
+        });
+      });
+
       $("#btn-new-case")?.addEventListener("click", () => {
         showModal(`
           <h2>New Triage Case</h2>
