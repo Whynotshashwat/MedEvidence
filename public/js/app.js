@@ -460,7 +460,31 @@
             const failedChecks = Object.entries(verdict.checks || {}).filter(([, v]) => v.status === "fail").map(([name, v]) => `${name}: ${v.detail}`).join("; ");
             banner.appendChild(h("div", { class: "verify-banner fail" }, h("i", { class: "fa-solid fa-triangle-exclamation" }), " TAMPERED \u2014 Verification failed", h("div", { class: "detail" }, failedChecks || (verdict.reasons || []).join("; "))));
           }
-          banner.appendChild(h("pre", {}, JSON.stringify(verdict, null, 2)));
+          // Render checks as a clean card
+          if (verdict.checks) {
+            const card = h("div", { class: "card", style: "margin-top:.75rem" });
+            card.appendChild(h("div", { class: "card-header" }, h("h3", {}, h("i", { class: "fa-solid fa-clipboard-check" }), " Verification Details")));
+            const tbl = h("table"); const tb = h("tbody");
+            for (const [name, check] of Object.entries(verdict.checks)) {
+              const icon = check.status === "pass"
+                ? h("i", { class: "fa-solid fa-circle-check", style: "color:var(--green)" })
+                : h("i", { class: "fa-solid fa-circle-xmark", style: "color:var(--red)" });
+              tb.appendChild(h("tr", {},
+                h("td", { style: "font-weight:600;text-transform:capitalize" }, name),
+                h("td", {}, h("span", { class: `badge badge-${check.status === "pass" ? "pass" : "escalated"}` }, check.status)),
+                h("td", { style: "color:var(--fg3);font-size:.82rem" }, check.detail || "\u2014")
+              ));
+            }
+            tbl.appendChild(tb); card.appendChild(tbl); banner.appendChild(card);
+          }
+          // Subject info
+          if (verdict.subject) {
+            const sub = h("div", { style: "margin-top:.5rem;font-size:.78rem;color:var(--fg3);display:flex;gap:1.5rem;flex-wrap:wrap" });
+            sub.appendChild(h("span", {}, h("i", { class: "fa-solid fa-fingerprint" }), ` Record: ${verdict.subject.record_id || "\u2014"}`));
+            sub.appendChild(h("span", {}, h("i", { class: "fa-solid fa-microchip" }), ` Key: ${verdict.subject.key_id || "\u2014"}`));
+            sub.appendChild(h("span", {}, h("i", { class: "fa-solid fa-clock" }), ` Issued: ${formatDate(verdict.subject.issued_at)}`));
+            banner.appendChild(sub);
+          }
         } catch (err) { banner.innerHTML = ""; banner.appendChild(h("div", { class: "verify-banner fail" }, h("i", { class: "fa-solid fa-circle-xmark" }), " Error: " + err.message)); }
       });
 
