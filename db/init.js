@@ -42,21 +42,17 @@ function init() {
     );
 
     const users = [
-      { username: "admin", name: "System Admin", role: "admin" },
-      { username: "dr.jones", name: "Dr. Sarah Jones", role: "doctor" },
-      { username: "nurse.lee", name: "Nurse Kevin Lee", role: "nurse" },
-      { username: "auditor", name: "Legal Auditor", role: "auditor" },
+      { username: "admin", name: "System Admin", role: "admin", pw: "admin123" },
+      { username: "dr.jones", name: "Dr. Sarah Jones", role: "doctor", pw: "doc123" },
+      { username: "nurse.lee", name: "Nurse Kevin Lee", role: "nurse", pw: "nurse123" },
+      { username: "auditor", name: "Legal Auditor", role: "auditor", pw: "audit123" },
     ];
 
-    const credentials = [];
     for (const u of users) {
-      const pw = generatePassword();
-      insert.run(uuid(), u.username, hashSync(pw, 12), u.name, u.role);
-      credentials.push(`  ${u.username} / ${pw}`);
+      insert.run(uuid(), u.username, hashSync(u.pw, 12), u.name, u.role);
     }
 
-    console.log("[db] Seeded users (save these — passwords shown once):");
-    console.log(credentials.join("\n"));
+    console.log("[db] Seeded default users: admin/admin123, dr.jones/doc123, nurse.lee/nurse123, auditor/audit123");
   }
 
   // Ensure test user exists for automated testing
