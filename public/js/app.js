@@ -90,6 +90,34 @@
     }
     if (!location.hash || location.hash === "#/") location.hash = "#/dashboard";
     else navigate(location.hash);
+    showOnboarding();
+  }
+
+  function dismissOnboarding() {
+    const overlay = $("#onboarding-overlay");
+    if (overlay) overlay.style.display = "none";
+    if ($("#onboarding-dont-show")?.checked) {
+      localStorage.setItem("medev_onboarded", "1");
+    }
+  }
+
+  function showOnboarding() {
+    if (localStorage.getItem("medev_onboarded")) return;
+    const overlay = $("#onboarding-overlay");
+    if (!overlay) return;
+    overlay.style.display = "flex";
+    overlay.addEventListener("click", (e) => {
+      if (e.target === overlay) dismissOnboarding();
+    });
+    $("#onboarding-skip")?.addEventListener("click", () => {
+      localStorage.setItem("medev_onboarded", "1");
+      dismissOnboarding();
+    });
+    $("#onboarding-start")?.addEventListener("click", () => {
+      localStorage.setItem("medev_onboarded", "1");
+      overlay.style.display = "none";
+      window.location.hash = "#/patients";
+    });
   }
 
   // Sidebar toggle for mobile

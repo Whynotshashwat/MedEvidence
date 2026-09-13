@@ -143,6 +143,59 @@
     </div>
 
     <div id="toast-container" class="toast-container"></div>
+
+    <div id="onboarding-overlay" class="onboarding-overlay" style="display:none">
+      <div class="onboarding-card">
+        <div class="onboarding-header">
+          <div class="onboarding-logo"><img src="/img/logo.svg" alt="" width="36" height="36"></div>
+          <div>
+            <h1>Welcome to MedEvidence</h1>
+            <p>Here's how to evaluate the CooL SDK cryptographic evidence demo</p>
+          </div>
+        </div>
+
+        <div class="onboarding-steps">
+          <div class="onboarding-step">
+            <div class="step-num">1</div>
+            <div class="step-content">
+              <h3>Create a Patient</h3>
+              <p>Click <strong>Patients</strong> in the sidebar → <strong>New Patient</strong> → enter any MRN, name, DOB, and sex.</p>
+            </div>
+          </div>
+          <div class="onboarding-step">
+            <div class="step-num">2</div>
+            <div class="step-content">
+              <h3>Run AI Triage</h3>
+              <p>Open the patient → <strong>New Case</strong> → enter vitals (e.g. HR: 72, RR: 16, Temp: 37.0, BP: 120) → Submit. The <strong>CooL SDK</strong> creates a cryptographic evidence receipt.</p>
+            </div>
+          </div>
+          <div class="onboarding-step">
+            <div class="step-num">3</div>
+            <div class="step-content">
+              <h3>Verify Evidence</h3>
+              <p>Open the case → click <strong>Verify</strong>. See CooL's cryptographic verification results. Expand <strong>Coded Receipt</strong> to inspect the full signed evidence.</p>
+            </div>
+          </div>
+          <div class="onboarding-step">
+            <div class="step-num">4</div>
+            <div class="step-content">
+              <h3>Simulate Tamper</h3>
+              <p>Click <strong>Tamper</strong> to mutate the stored data → click <strong>Verify</strong> again. The binding hash check <strong>fails</strong>, proving tamper detection works.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="onboarding-footer">
+          <label class="onboarding-dismiss">
+            <input type="checkbox" id="onboarding-dont-show"> Don't show again
+          </label>
+          <div class="onboarding-actions">
+            <button class="btn btn-ghost" id="onboarding-skip">Skip</button>
+            <button class="btn btn-primary" id="onboarding-start">Start Building →</button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
   <script src="/js/api.js"></script>
   <script src="/js/app.js"></script>
