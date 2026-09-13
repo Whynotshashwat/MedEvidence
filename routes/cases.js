@@ -90,7 +90,9 @@ router.get("/:id", (req, res) => {
   const recommendations = db.prepare("SELECT * FROM recommendations WHERE case_id = ? ORDER BY created_at DESC").all(req.params.id);
   const evidenceRecords = db.prepare("SELECT id, case_id, record_id, execution_id, digest, binding_hash, created_at FROM evidence WHERE case_id = ? ORDER BY created_at DESC").all(req.params.id);
 
-  res.json({ ...caseData, vitals, recommendations, evidence: evidenceRecords });
+  const backup = db.prepare("SELECT id FROM tamper_backup WHERE case_id = ? LIMIT 1").get(req.params.id);
+
+  res.json({ ...caseData, vitals, recommendations, evidence: evidenceRecords, is_tampered: !!backup });
 });
 
 // Create case — run mock AI triage and produce CooL evidence
@@ -235,11 +237,16 @@ router.post("/:id/tamper", requireRole("admin", "superadmin", "auditor"), (req, 
   const recRow = db.prepare("SELECT * FROM recommendations WHERE case_id = ? ORDER BY created_at DESC LIMIT 1").get(req.params.id);
   if (!recRow) return res.status(404).json({ error: "No recommendation found" });
 
+  const vitalsRow = db.prepare("SELECT * FROM vitals WHERE case_id = ? ORDER BY recorded_at DESC LIMIT 1").get(req.params.id);
+
+  // Save originals before tamper
+  db.prepare("INSERT INTO tamper_backup (id, case_id, vitals_json, rec_json) VALUES (?, ?, ?, ?)")
+    .run(uuid(), req.params.id, JSON.stringify(vitalsRow), JSON.stringify(recRow));
+
   // Mutate the recommendation
   db.prepare("UPDATE recommendations SET score = ?, recommend = ? WHERE id = ?").run(20, "Continue monitoring", recRow.id);
 
   // Also update vitals to look normal
-  const vitalsRow = db.prepare("SELECT * FROM vitals WHERE case_id = ? ORDER BY recorded_at DESC LIMIT 1").get(req.params.id);
   if (vitalsRow) {
     db.prepare("UPDATE vitals SET heart_rate = ?, resp_rate = ?, temp = ?, systolic_bp = ? WHERE id = ?").run(72, 16, 36.8, 120, vitalsRow.id);
   }
@@ -248,6 +255,32 @@ router.post("/:id/tamper", requireRole("admin", "superadmin", "auditor"), (req, 
 
   auditLog(req, "case.tamper", "case", req.params.id, { note: "Simulated post-hoc record tampering" });
   res.json({ tampered: true });
+});
+
+// Revert tampered case to original values
+router.post("/:id/revert", requireRole("admin", "superadmin", "auditor"), (req, res) => {
+  const db = getDb();
+  const caseData = db.prepare("SELECT * FROM cases WHERE id = ?").get(req.params.id);
+  if (!caseData) return res.status(404).json({ error: "Case not found" });
+
+  const backup = db.prepare("SELECT * FROM tamper_backup WHERE case_id = ? ORDER BY backed_up_at DESC LIMIT 1").get(req.params.id);
+  if (!backup) return res.status(404).json({ error: "No backup found — case was not tampered" });
+
+  const vitals = JSON.parse(backup.vitals_json);
+  const rec = JSON.parse(backup.rec_json);
+
+  if (vitals) {
+    db.prepare("UPDATE vitals SET heart_rate = ?, resp_rate = ?, temp = ?, systolic_bp = ? WHERE id = ?")
+      .run(vitals.heart_rate, vitals.resp_rate, vitals.temp, vitals.systolic_bp, vitals.id);
+  }
+  db.prepare("UPDATE recommendations SET score = ?, recommend = ? WHERE id = ?")
+    .run(rec.score, rec.recommend, rec.id);
+
+  db.prepare("DELETE FROM tamper_backup WHERE id = ?").run(backup.id);
+  db.prepare("UPDATE cases SET updated_at = datetime('now') WHERE id = ?").run(req.params.id);
+
+  auditLog(req, "case.revert", "case", req.params.id, { note: "Reverted tampered data to original values" });
+  res.json({ reverted: true });
 });
 
 // Update case status

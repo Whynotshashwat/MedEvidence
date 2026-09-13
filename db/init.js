@@ -30,6 +30,7 @@ CREATE TABLE IF NOT EXISTS vitals (id TEXT PRIMARY KEY, case_id TEXT NOT NULL RE
 CREATE TABLE IF NOT EXISTS recommendations (id TEXT PRIMARY KEY, case_id TEXT NOT NULL REFERENCES cases(id), score INTEGER NOT NULL, recommend TEXT NOT NULL, model_version TEXT, created_at TEXT DEFAULT (datetime('now')));
 CREATE TABLE IF NOT EXISTS evidence (id TEXT PRIMARY KEY, case_id TEXT NOT NULL REFERENCES cases(id), record_id TEXT NOT NULL, execution_id TEXT, digest TEXT, evidence_json TEXT, binding_hash TEXT NOT NULL, created_at TEXT DEFAULT (datetime('now')));
 CREATE TABLE IF NOT EXISTS audit_log (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id TEXT, username TEXT, action TEXT NOT NULL, entity_type TEXT, entity_id TEXT, details TEXT, ip TEXT, created_at TEXT DEFAULT (datetime('now')));
+CREATE TABLE IF NOT EXISTS tamper_backup (id TEXT PRIMARY KEY, case_id TEXT NOT NULL, vitals_json TEXT NOT NULL, rec_json TEXT NOT NULL, backed_up_at TEXT DEFAULT (datetime('now')));
 `;
 
 export function getDb() {

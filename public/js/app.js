@@ -439,6 +439,7 @@
         h("div", { class: "btn-group" },
           h("button", { class: "btn btn-success", id: "btn-verify" }, h("i", { class: "fa-solid fa-shield-check" }), " Verify"),
           h("button", { class: "btn btn-danger", id: "btn-tamper" }, h("i", { class: "fa-solid fa-bolt" }), " Tamper"),
+          c.is_tampered ? h("button", { class: "btn btn-warning", id: "btn-revert", style: "background:var(--yellow);border-color:var(--yellow);color:#fff" }, h("i", { class: "fa-solid fa-rotate-left" }), " Revert") : null,
           h("select", { id: "status-select", class: "btn btn-outline" }, ...["open", "escalated", "resolved", "closed"].map(s => Object.assign(h("option", { value: s }, s), { selected: s === c.status })))
         )
       ));
@@ -638,7 +639,13 @@
       // Tamper
       $("#btn-tamper").addEventListener("click", async () => {
         if (!confirm("Simulate tampering? This will mutate stored vitals and recommendation.")) return;
-        try { await API.post(`/cases/${id}/tamper`); toast("Record tampered \u2014 run Verify to detect", "error"); renderCaseDetail(el, id); } catch (err) { toast(err.message, "error"); }
+        try { await API.post(`/cases/${id}/tamper`); toast("Record tampered — run Verify to detect", "error"); renderCaseDetail(el, id); } catch (err) { toast(err.message, "error"); }
+      });
+
+      // Revert
+      $("#btn-revert")?.addEventListener("click", async () => {
+        if (!confirm("Revert tampered data to original values?")) return;
+        try { await API.post(`/cases/${id}/revert`); toast("Data reverted to original values", "success"); renderCaseDetail(el, id); } catch (err) { toast(err.message, "error"); }
       });
 
       // Status change
