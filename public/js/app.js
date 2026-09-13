@@ -485,19 +485,92 @@
             sub.appendChild(h("span", {}, h("i", { class: "fa-solid fa-clock" }), ` Issued: ${formatDate(verdict.subject.issued_at)}`));
             banner.appendChild(sub);
           }
-          // Raw receipt (collapsible)
+          // Coded Receipt
           if (verdict.receipt) {
+            const rc = verdict.receipt;
+            const rec = rc.record || {};
+            const sig = rec.signature || {};
+            const att = rc.attestation || {};
+            const runtime = rec.runtime || {};
+            const incl = rc.inclusion || {};
+            const sth = rc.sth || {};
+            const keyDir = rc.key_directory || {};
+
             const receiptCard = h("div", { class: "card", style: "margin-top:.75rem" });
-            receiptCard.appendChild(h("div", { class: "card-header", style: "cursor:pointer" },
-              h("h3", {}, h("i", { class: "fa-solid fa-code" }), " Coded Receipt"),
-              h("span", { style: "color:var(--fg3);font-size:.75rem" }, "click to expand")
+            receiptCard.appendChild(h("div", { class: "card-header" },
+              h("h3", {}, h("i", { class: "fa-solid fa-code" }), " Coded Receipt")
             ));
-            const receiptBody = h("pre", { style: "display:none;background:var(--bg2);padding:.75rem;border-radius:6px;font-size:.72rem;overflow-x:auto;max-height:300px;overflow-y:auto;white-space:pre-wrap;word-break:break-all" });
-            receiptBody.textContent = JSON.stringify(verdict.receipt, null, 2);
-            receiptCard.appendChild(receiptBody);
-            receiptCard.querySelector(".card-header").addEventListener("click", () => {
-              receiptBody.style.display = receiptBody.style.display === "none" ? "block" : "none";
-            });
+            const body = h("div", { style: "padding:.75rem 1rem" });
+
+            function fieldRow(label, value, mono) {
+              const val = typeof value === "string" && value.length > 80 ? value.slice(0, 80) + "..." : (value || "\u2014");
+              return h("tr", {},
+                h("td", { style: "font-weight:600;white-space:nowrap;padding:.3rem .75rem .3rem 0;color:var(--fg2)" }, label),
+                h("td", { style: `padding:.3rem 0;font-size:.82rem;${mono ? "font-family:monospace;word-break:break-all;color:var(--fg3)" : "color:var(--fg3)"}` }, String(val))
+              );
+            }
+
+            function section(title) {
+              return h("tr", {},
+                h("td", { colspan: "2", style: "font-weight:700;padding:.6rem 0 .3rem;border-top:1px solid var(--border);color:var(--green);font-size:.8rem;text-transform:uppercase;letter-spacing:.5px" },
+                  h("i", { class: "fa-solid fa-caret-right" }), " " + title
+                )
+              );
+            }
+
+            const tbl = h("table", { style: "width:100%" });
+            const tb = h("tbody");
+            tb.appendChild(section("Schema"));
+            tb.appendChild(fieldRow("Schema", rc.schema, true));
+            tb.appendChild(fieldRow("Record ID", rec.record_id, true));
+
+            tb.appendChild(section("Record"));
+            tb.appendChild(fieldRow("Event Type", rec.event?.type));
+            tb.appendChild(fieldRow("App ID", rec.event?.application_id));
+            tb.appendChild(fieldRow("Execution ID", rec.event?.execution_id, true));
+            tb.appendChild(fieldRow("Issued At", rec.time?.issued_at));
+            tb.appendChild(fieldRow("Model", rec.event?.software?.name));
+            tb.appendChild(fieldRow("Version", rec.event?.software?.version));
+
+            tb.appendChild(section("Commitments"));
+            const commits = rec.event?.commitments || {};
+            if (commits.input) tb.appendChild(fieldRow("Input Hash", commits.input, true));
+            if (commits.output) tb.appendChild(fieldRow("Output Hash", commits.output, true));
+
+            tb.appendChild(section("Signature"));
+            tb.appendChild(fieldRow("Algorithm", sig.alg));
+            tb.appendChild(fieldRow("Key ID", sig.key_id, true));
+            tb.appendChild(fieldRow("ML-DSA (truncated)", sig.ml_dsa?.slice(0, 60) + "...", true));
+
+            tb.appendChild(section("Runtime"));
+            tb.appendChild(fieldRow("TEE Vendor", runtime.tee_vendor));
+            tb.appendChild(fieldRow("Mode", runtime.mode));
+            tb.appendChild(fieldRow("MRTD", runtime.enclave_measurement?.mrtd?.slice(0, 50) + "...", true));
+
+            tb.appendChild(section("Inclusion"));
+            tb.appendChild(fieldRow("Leaf Index", incl.leaf_index));
+            tb.appendChild(fieldRow("Tree Size", incl.tree_size));
+
+            tb.appendChild(section("Signed Tree Head"));
+            tb.appendChild(fieldRow("Log ID", sth.log_id));
+            tb.appendChild(fieldRow("Root Hash", sth.root_hash?.slice(0, 50) + "...", true));
+            tb.appendChild(fieldRow("Timestamp", sth.timestamp));
+
+            tb.appendChild(section("Attestation"));
+            tb.appendChild(fieldRow("Mode", att.mode));
+            tb.appendChild(fieldRow("Note", att.note));
+
+            tb.appendChild(section("Key Directory"));
+            for (const [kid, kv] of Object.entries(keyDir)) {
+              tb.appendChild(fieldRow(kid, kv.ml_dsa_pub?.slice(0, 50) + "...", true));
+            }
+
+            tb.appendChild(section("Binding Hash"));
+            tb.appendChild(fieldRow("Hash", rc.binding_hash, true));
+
+            tbl.appendChild(tb);
+            body.appendChild(tbl);
+            receiptCard.appendChild(body);
             banner.appendChild(receiptCard);
           }
         } catch (err) { banner.innerHTML = ""; banner.appendChild(h("div", { class: "verify-banner fail" }, h("i", { class: "fa-solid fa-circle-xmark" }), " Error: " + err.message)); }
