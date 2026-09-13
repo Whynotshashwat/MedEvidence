@@ -1,16 +1,13 @@
 import Database from "better-sqlite3";
-import { readFileSync } from "fs";
-import { join, dirname } from "path";
-import { fileURLToPath } from "url";
+import { existsSync, mkdirSync } from "fs";
 import bcryptjs from "bcryptjs";
 const { hashSync } = bcryptjs;
 import { v4 as uuid } from "uuid";
 import { randomBytes } from "crypto";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-const DB_PATH = process.env.DB_PATH || (process.env.VERCEL ? "/tmp/medevidence.db" : join(__dirname, "medevidence.db"));
+const isVercel = !!process.env.VERCEL;
+const DB_DIR = isVercel ? "/tmp" : (process.env.DB_PATH ? require("path").dirname(process.env.DB_PATH) : ".");
+const DB_PATH = process.env.DB_PATH || (isVercel ? "/tmp/medevidence.db" : "./db/medevidence.db");
 
 let db;
 
@@ -22,47 +19,50 @@ function generatePassword(len = 16) {
   return pw;
 }
 
+const SCHEMA = `
+CREATE TABLE IF NOT EXISTS users (id TEXT PRIMARY KEY, username TEXT NOT NULL UNIQUE, password_hash TEXT NOT NULL, full_name TEXT NOT NULL, role TEXT NOT NULL CHECK(role IN ('admin','doctor','nurse','auditor')), created_at TEXT DEFAULT (datetime('now')));
+CREATE TABLE IF NOT EXISTS patients (id TEXT PRIMARY KEY, mrn TEXT NOT NULL UNIQUE, first_name TEXT NOT NULL, last_name TEXT NOT NULL, dob TEXT NOT NULL, sex TEXT, created_at TEXT DEFAULT (datetime('now')), updated_at TEXT DEFAULT (datetime('now')));
+CREATE TABLE IF NOT EXISTS cases (id TEXT PRIMARY KEY, patient_id TEXT NOT NULL REFERENCES patients(id), case_number TEXT NOT NULL UNIQUE, status TEXT NOT NULL DEFAULT 'open' CHECK(status IN ('open','escalated','resolved','closed')), created_by TEXT NOT NULL REFERENCES users(id), created_at TEXT DEFAULT (datetime('now')), updated_at TEXT DEFAULT (datetime('now')));
+CREATE TABLE IF NOT EXISTS vitals (id TEXT PRIMARY KEY, case_id TEXT NOT NULL REFERENCES cases(id), heart_rate INTEGER NOT NULL, resp_rate INTEGER NOT NULL, temp REAL NOT NULL, systolic_bp INTEGER NOT NULL, recorded_at TEXT DEFAULT (datetime('now')));
+CREATE TABLE IF NOT EXISTS recommendations (id TEXT PRIMARY KEY, case_id TEXT NOT NULL REFERENCES cases(id), score INTEGER NOT NULL, recommend TEXT NOT NULL, model_version TEXT, created_at TEXT DEFAULT (datetime('now')));
+CREATE TABLE IF NOT EXISTS evidence (id TEXT PRIMARY KEY, case_id TEXT NOT NULL REFERENCES cases(id), record_id TEXT NOT NULL, execution_id TEXT, digest TEXT, evidence_json TEXT, binding_hash TEXT NOT NULL, created_at TEXT DEFAULT (datetime('now')));
+CREATE TABLE IF NOT EXISTS audit_log (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id TEXT, username TEXT, action TEXT NOT NULL, entity_type TEXT, entity_id TEXT, details TEXT, ip TEXT, created_at TEXT DEFAULT (datetime('now')));
+`;
+
 export function getDb() {
   if (!db) {
+    if (isVercel && !existsSync("/tmp")) {
+      mkdirSync("/tmp", { recursive: true });
+    }
     db = new Database(DB_PATH);
     db.pragma("journal_mode = WAL");
     db.pragma("foreign_keys = ON");
-    init();
-  }
-  return db;
-}
+    db.exec(SCHEMA);
 
-function init() {
-  const schema = readFileSync(join(__dirname, "schema.sql"), "utf8");
-  db.exec(schema);
-
-  const count = db.prepare("SELECT COUNT(*) as c FROM users").get();
-  if (count.c === 0) {
-    const insert = db.prepare(
-      "INSERT INTO users (id, username, password_hash, full_name, role) VALUES (?, ?, ?, ?, ?)"
-    );
-
-    const users = [
-      { username: "admin", name: "System Admin", role: "admin", pw: "admin123" },
-      { username: "dr.jones", name: "Dr. Sarah Jones", role: "doctor", pw: "doc123" },
-      { username: "nurse.lee", name: "Nurse Kevin Lee", role: "nurse", pw: "nurse123" },
-      { username: "auditor", name: "Legal Auditor", role: "auditor", pw: "audit123" },
-    ];
-
-    for (const u of users) {
-      insert.run(uuid(), u.username, hashSync(u.pw, 12), u.name, u.role);
+    const count = db.prepare("SELECT COUNT(*) as c FROM users").get();
+    if (count.c === 0) {
+      const insert = db.prepare(
+        "INSERT INTO users (id, username, password_hash, full_name, role) VALUES (?, ?, ?, ?, ?)"
+      );
+      const users = [
+        { username: "admin", name: "System Admin", role: "admin", pw: "admin123" },
+        { username: "dr.jones", name: "Dr. Sarah Jones", role: "doctor", pw: "doc123" },
+        { username: "nurse.lee", name: "Nurse Kevin Lee", role: "nurse", pw: "nurse123" },
+        { username: "auditor", name: "Legal Auditor", role: "auditor", pw: "audit123" },
+      ];
+      for (const u of users) {
+        insert.run(uuid(), u.username, hashSync(u.pw, 12), u.name, u.role);
+      }
     }
 
-    console.log("[db] Seeded default users: admin/admin123, dr.jones/doc123, nurse.lee/nurse123, auditor/audit123");
+    const testUser = db.prepare("SELECT id FROM users WHERE username = ?").get("test");
+    if (!testUser) {
+      db.prepare(
+        "INSERT INTO users (id, username, password_hash, full_name, role) VALUES (?, ?, ?, ?, ?)"
+      ).run(uuid(), "test", hashSync("test1234", 12), "Test User", "admin");
+    }
   }
-
-  // Ensure test user exists for automated testing
-  const testUser = db.prepare("SELECT id FROM users WHERE username = ?").get("test");
-  if (!testUser) {
-    db.prepare(
-      "INSERT INTO users (id, username, password_hash, full_name, role) VALUES (?, ?, ?, ?, ?)"
-    ).run(uuid(), "test", hashSync("test1234", 12), "Test User", "admin");
-  }
+  return db;
 }
 
 export function closeDb() {
