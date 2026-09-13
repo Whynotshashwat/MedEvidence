@@ -119,12 +119,15 @@ if (currentHash !== storedBindingHash) {
 
 ### Workflow
 
-1. **Login** — JWT authentication with role-based access (admin, doctor, nurse, auditor)
-2. **Create Patient** — Register patient with MRN, demographics
+1. **Login** — JWT authentication with role-based access (admin, superadmin, doctor, nurse, auditor)
+2. **Create Patient** — Register patient with MRN, demographics (with edit support)
 3. **Run Triage** — Enter vitals → Mock AI model scores severity → CooL SDK records evidence receipt
 4. **Verify Evidence** — Two-layer check: CooL cryptographic integrity + binding hash recomputation
-5. **Simulate Tamper** — Mutate stored data → Verify detects the change (binding hash fails)
-6. **Audit Trail** — Every action logged with user, timestamp, IP, and details
+5. **View Coded Receipt** — Structured display of the full CooL evidence receipt (schema, record, signatures, attestation, key directory)
+6. **Simulate Tamper** — Mutate stored data → Verify detects the change (binding hash fails)
+7. **User Management** — Admin/superadmin can create and delete users with auto-generated credentials
+8. **Audit Trail** — Every action logged with user, timestamp, IP, and details
+9. **Dark/Light Mode** — Toggle between healthcare-friendly light and dark themes (persisted in localStorage)
 
 ---
 
@@ -142,23 +145,7 @@ if (currentHash !== storedBindingHash) {
 
 ---
 
-## Getting Started
-
-### Prerequisites
-
-- Node.js >= 20
-- npm
-
-### Install & Run
-
-```bash
-git clone https://github.com/<your-username>/medevidence.git
-cd medevidence
-npm install
-npm start
-```
-
-Open http://localhost:3000
+## Deployment
 
 ### Default Users
 
@@ -168,18 +155,17 @@ Open http://localhost:3000
 | `dr.jones` | `doc123` | doctor |
 | `nurse.lee` | `nurse123` | nurse |
 | `auditor` | `audit123` | auditor |
+| `superadmin` | `shashwat` | superadmin (hidden, undeletable) |
 
 ### Run Tests
 
 ```bash
-npm test
+node test.mjs
 ```
 
 Requires the server to be running on `localhost:3000`.
 
----
-
-## Database Schema
+### Database Schema
 
 7 tables with foreign keys and indexes:
 
@@ -191,19 +177,63 @@ Requires the server to be running on `localhost:3000`.
 - **evidence** — CooL SDK receipts (record_id, execution_id, digest, evidence_json, binding_hash)
 - **audit_log** — Complete action trail
 
----
-
-## Security Features
+### Security Features
 
 - **JWT authentication** with configurable expiry
-- **Role-based access control** (admin, doctor, nurse, auditor)
-- **Rate limiting** on login (10 requests / 15 minutes)
+- **Role-based access control** (admin, superadmin, doctor, nurse, auditor)
+- **Rate limiting** on login (60 requests / minute) and globally (200 requests / 15 minutes)
 - **CORS** restricted in production
 - **Helmet** security headers
 - **Input validation** on vitals (physiological range checks)
 - **SQL injection protection** via parameterized queries
 - **XSS prevention** via safe DOM creation (no innerHTML interpolation)
 - **JWT_SECRET required** in production (crashes if not set)
+- **Superadmin** hidden from user list, undeletable, full admin access
+
+---
+
+### Local Development
+
+```bash
+git clone https://github.com/Whynotshashwat/MedEvidence.git
+cd MedEvidence
+npm install
+npm run dev
+```
+
+Open http://localhost:3000
+
+### Render (Production)
+
+The app includes a `render.yaml` Blueprint and `Dockerfile` for one-click deployment:
+
+1. Fork the repository
+2. Connect your GitHub repo to Render
+3. Render auto-detects `render.yaml` and builds the Docker image
+4. Set `JWT_SECRET` in Render's Environment tab (the pinned value in `render.yaml` works for demos)
+
+> **Note:** Render free tier uses ephemeral disk — patient/case data is lost on service restart. Upgrade to a paid plan with persistent disk for data retention.
+
+### Docker
+
+```bash
+docker build -t medevidence .
+docker run -p 3000:3000 -e JWT_SECRET=your-secret-here medevidence
+```
+
+---
+
+## Technical Decisions
+
+| Decision | Rationale |
+|---|---|
+| **CooL SDK for evidence** | Provides cryptographic receipts with attestation chains — stronger than database-level audit logs alone |
+| **Two-layer verification** | CooL checks cryptographic integrity; binding hash checks EHR data integrity. Both are needed for full assurance |
+| **SQLite + WAL mode** | Simple deployment, no external DB dependency. WAL mode allows concurrent reads during writes |
+| **Express 5** | Latest Express with native async error handling and modern path matching |
+| **Vanilla JS SPA** | No build step, no framework dependency. Fast to develop, easy to deploy |
+| **JWT in localStorage** | Simpler than httpOnly cookies for a demo app. Production would use cookies + CSRF |
+| **Mock AI model** | Rule-based triage scoring. The focus is on the evidence infrastructure, not the model |
 
 ---
 
@@ -214,16 +244,17 @@ Requires the server to be running on `localhost:3000`.
 - Mock AI model (rule-based triage scoring)
 - SQLite (not suitable for high-concurrency production)
 - No WebSocket for real-time updates
-- No patient edit UI (API exists, frontend incomplete)
 - No case delete (intentional for evidence integrity)
+- Render free tier: data lost on restart (ephemeral disk)
 
 **Future improvements:**
 - Replace mock model with real ML inference
 - Real CooL SDK attestation with TEE
 - PostgreSQL for production deployment
-- Patient edit form in frontend
+- Persistent storage on Render (paid plan with disk)
 - Case notes/comments
 - PDF evidence export
 - Email notifications for escalated cases
 - Two-factor authentication
 - API documentation (OpenAPI/Swagger)
+- Token refresh for extended sessions
