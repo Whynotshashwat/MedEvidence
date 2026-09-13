@@ -34,7 +34,7 @@ app.use(helmet({
 }));
 
 const isProduction = process.env.NODE_ENV === "production";
-app.use(cors(isProduction ? { origin: process.env.ALLOWED_ORIGIN || false } : { origin: "http://localhost:3000" }));
+app.use(cors(isProduction ? { origin: process.env.ALLOWED_ORIGIN || true } : { origin: "http://localhost:3000" }));
 app.use(express.json({ limit: "1mb" }));
 
 // Global rate limiting
@@ -110,16 +110,24 @@ app.use((err, _req, res, _next) => {
   res.status(500).json({ error: "Internal server error" });
 });
 
-const PORT = process.env.PORT || 3000;
-const server = app.listen(PORT, () => {
-  console.log(`\nMedEvidence v2 — http://localhost:${PORT}`);
-  console.log("  Users seeded on first run. Check server logs for credentials.\n");
-});
+export default app;
 
-for (const signal of ["SIGINT", "SIGTERM"]) {
-  process.on(signal, () => {
-    console.log("\nShutting down...");
-    closeDb();
-    server.close(() => process.exit(0));
+// Start server only when run directly (not imported by Vercel)
+const isDirectRun = process.argv[1] && (
+  process.argv[1].endsWith("server.js") || process.argv[1].endsWith("server.mjs")
+);
+if (isDirectRun || process.env.VERCEL !== "1") {
+  const PORT = process.env.PORT || 3000;
+  const server = app.listen(PORT, () => {
+    console.log(`\nMedEvidence v2 — http://localhost:${PORT}`);
+    console.log("  Users seeded on first run. Check server logs for credentials.\n");
   });
+
+  for (const signal of ["SIGINT", "SIGTERM"]) {
+    process.on(signal, () => {
+      console.log("\nShutting down...");
+      closeDb();
+      server.close(() => process.exit(0));
+    });
+  }
 }
