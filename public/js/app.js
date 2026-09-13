@@ -50,6 +50,8 @@
     const name = path[0] || "dashboard";
     const param = path[1];
     $$(".nav-link").forEach((a) => a.classList.toggle("active", a.dataset.route === name));
+    const headerCenter = $(".header-center");
+    if (headerCenter) headerCenter.style.display = (name === "dashboard") ? "none" : "";
     $$(".view").forEach((v) => (v.style.display = "none"));
     const notFound = $("#not-found-view");
     if (notFound) notFound.style.display = "none";
@@ -279,6 +281,11 @@
       renderRows(data.patients); table.appendChild(tbody); tableWrap.appendChild(table); el.appendChild(tableWrap);
       let searchTimeout;
       $("#patient-search").addEventListener("input", (e) => { clearTimeout(searchTimeout); searchTimeout = setTimeout(async () => { const q = e.target.value.trim(); const d = q ? await API.get(`/patients?search=${encodeURIComponent(q)}`) : await API.get("/patients"); renderRows(d.patients); }, 300); });
+      const urlSearch = new URLSearchParams(location.hash.split("?")[1] || "").get("search");
+      if (urlSearch) {
+        $("#patient-search").value = urlSearch;
+        API.get(`/patients?search=${encodeURIComponent(urlSearch)}`).then(d => renderRows(d.patients));
+      }
       $("#btn-new-patient").addEventListener("click", () => {
         showModal(`
           <h2>New Patient</h2>
@@ -407,19 +414,31 @@
       el.innerHTML = "";
       el.appendChild(h("div", { class: "page-header" },
         h("div", {}, h("h1", {}, "All Cases"), h("div", { class: "page-subtitle" }, `${data.total} total cases`)),
-        h("a", { href: "#/patients", class: "btn btn-primary" }, h("i", { class: "fa-solid fa-plus" }), " New Case")
+        h("div", { class: "btn-group" },
+          h("input", { type: "text", id: "case-search", placeholder: "Search by case #, patient, MRN...", style: "padding:.55rem .9rem;background:var(--bg);border:1.5px solid var(--border);border-radius:var(--radius);color:var(--fg);font-size:.82rem;font-family:inherit;width:260px" }),
+          h("a", { href: "#/patients", class: "btn btn-primary" }, h("i", { class: "fa-solid fa-plus" }), " New Case")
+        )
       ));
       const card = h("div", { class: "card table-wrap" });
-      if (data.cases.length === 0) {
-        card.appendChild(h("div", { class: "empty" }, h("i", { class: "fa-solid fa-folder-open" }), h("h3", {}, "No cases"), h("p", {}, "Create a patient and run triage first.")));
-      } else {
-        const table = h("table");
-        table.appendChild(h("thead", {}, h("tr", {}, h("th", {}, "Case #"), h("th", {}, "Patient"), h("th", {}, "MRN"), h("th", {}, "Score"), h("th", {}, "Recommendation"), h("th", {}, "Status"), h("th", {}))));
-        const tbody = h("tbody");
-        for (const c of data.cases) { tbody.appendChild(h("tr", {}, h("td", {}, h("strong", {}, c.case_number)), h("td", {}, `${c.first_name || "?"} ${c.last_name || "?"}`), h("td", {}, h("code", { style: "font-size:.75rem;background:var(--bg3);padding:.15rem .4rem;border-radius:4px" }, c.mrn || "\u2014")), h("td", {}, String(c.score ?? "\u2014")), h("td", {}, c.recommend || "\u2014"), h("td", {}, badge(c.status, c.status)), h("td", {}, h("a", { href: `#/cases/${c.id}`, class: "btn btn-sm btn-primary" }, "View")))); }
-        table.appendChild(tbody); card.appendChild(table);
+      const table = h("table");
+      table.appendChild(h("thead", {}, h("tr", {}, h("th", {}, "Case #"), h("th", {}, "Patient"), h("th", {}, "MRN"), h("th", {}, "Score"), h("th", {}, "Recommendation"), h("th", {}, "Status"), h("th", {}))));
+      const tbody = h("tbody");
+      function renderCaseRows(cases) {
+        tbody.innerHTML = "";
+        if (cases.length === 0) { tbody.appendChild(h("tr", {}, h("td", { colspan: "7", style: "text-align:center;color:var(--fg3);padding:2.5rem" }, "No cases found"))); return; }
+        for (const c of cases) {
+          tbody.appendChild(h("tr", {}, h("td", {}, h("strong", {}, c.case_number)), h("td", {}, `${c.first_name || "?"} ${c.last_name || "?"}`), h("td", {}, h("code", { style: "font-size:.75rem;background:var(--bg3);padding:.15rem .4rem;border-radius:4px" }, c.mrn || "\u2014")), h("td", {}, String(c.score ?? "\u2014")), h("td", {}, c.recommend || "\u2014"), h("td", {}, badge(c.status, c.status)), h("td", {}, h("a", { href: `#/cases/${c.id}`, class: "btn btn-sm btn-primary" }, "View"))));
+        }
       }
-      el.appendChild(card);
+      renderCaseRows(data.cases);
+      table.appendChild(tbody); card.appendChild(table); el.appendChild(card);
+      let caseSearchTimeout;
+      $("#case-search").addEventListener("input", (e) => { clearTimeout(caseSearchTimeout); caseSearchTimeout = setTimeout(async () => { const q = e.target.value.trim(); const d = q ? await API.get(`/cases?search=${encodeURIComponent(q)}`) : await API.get("/cases"); renderCaseRows(d.cases); }, 300); });
+      const caseUrlSearch = new URLSearchParams(location.hash.split("?")[1] || "").get("search");
+      if (caseUrlSearch) {
+        $("#case-search").value = caseUrlSearch;
+        API.get(`/cases?search=${encodeURIComponent(caseUrlSearch)}`).then(d => renderCaseRows(d.cases));
+      }
     } catch (err) { renderError(el, err.message); }
   });
 
@@ -707,24 +726,39 @@
       el.innerHTML = "";
       el.appendChild(h("div", { class: "page-header" },
         h("div", {}, h("h1", {}, "User Management"), h("div", { class: "page-subtitle" }, `${users.length} registered users`)),
-        h("button", { class: "btn btn-primary", id: "btn-new-user" }, h("i", { class: "fa-solid fa-user-plus" }), " New User")
+        h("div", { class: "btn-group" },
+          h("input", { type: "text", id: "user-search", placeholder: "Search by username or name...", style: "padding:.55rem .9rem;background:var(--bg);border:1.5px solid var(--border);border-radius:var(--radius);color:var(--fg);font-size:.82rem;font-family:inherit;width:220px" }),
+          h("button", { class: "btn btn-primary", id: "btn-new-user" }, h("i", { class: "fa-solid fa-user-plus" }), " New User")
+        )
       ));
       const card = h("div", { class: "card table-wrap" });
       const table = h("table");
       table.appendChild(h("thead", {}, h("tr", {}, h("th", {}, "Username"), h("th", {}, "Full Name"), h("th", {}, "Role"), h("th", {}, "Created"), h("th", {}))));
       const tbody = h("tbody");
       const roleColors = { admin: "red", doctor: "blue", nurse: "green", auditor: "purple" };
-      for (const u of users) {
-        const initials = ((u.full_name || "?")[0] + (u.full_name || "?").split(" ").pop()[0]).toUpperCase();
-        tbody.appendChild(h("tr", {},
-          h("td", {}, h("strong", {}, u.username)),
-          h("td", {}, h("div", { style: "display:flex;align-items:center;gap:.5rem" }, h("div", { class: "avatar", style: `width:28px;height:28px;font-size:.6rem;border-radius:7px;background:var(--${roleColors[u.role] || "primary"})` }, initials), u.full_name)),
-          h("td", {}, badge(u.role, u.role === "admin" ? "escalated" : u.role === "doctor" ? "open" : u.role === "nurse" ? "pass" : "simulated")),
-          h("td", { style: "color:var(--fg3);font-size:.78rem" }, formatDate(u.created_at)),
-          h("td", {}, h("button", { class: "btn btn-sm btn-danger", onclick: () => deleteUser(u.id, u.username) }, "Delete"))
-        ));
+      function renderUserRows(userList) {
+        tbody.innerHTML = "";
+        if (userList.length === 0) { tbody.appendChild(h("tr", {}, h("td", { colspan: "5", style: "text-align:center;color:var(--fg3);padding:2.5rem" }, "No users found"))); return; }
+        for (const u of userList) {
+          const initials = ((u.full_name || "?")[0] + (u.full_name || "?").split(" ").pop()[0]).toUpperCase();
+          tbody.appendChild(h("tr", {},
+            h("td", {}, h("strong", {}, u.username)),
+            h("td", {}, h("div", { style: "display:flex;align-items:center;gap:.5rem" }, h("div", { class: "avatar", style: `width:28px;height:28px;font-size:.6rem;border-radius:7px;background:var(--${roleColors[u.role] || "primary"})` }, initials), u.full_name)),
+            h("td", {}, badge(u.role, u.role === "admin" ? "escalated" : u.role === "doctor" ? "open" : u.role === "nurse" ? "pass" : "simulated")),
+            h("td", { style: "color:var(--fg3);font-size:.78rem" }, formatDate(u.created_at)),
+            h("td", {}, h("button", { class: "btn btn-sm btn-danger", onclick: () => deleteUser(u.id, u.username) }, "Delete"))
+          ));
+        }
       }
+      renderUserRows(users);
       table.appendChild(tbody); card.appendChild(table); el.appendChild(card);
+      let userSearchTimeout;
+      $("#user-search").addEventListener("input", (e) => { clearTimeout(userSearchTimeout); userSearchTimeout = setTimeout(async () => { const q = e.target.value.trim(); const u = q ? await API.get(`/auth/users?search=${encodeURIComponent(q)}`) : await API.get("/auth/users"); renderUserRows(u); }, 300); });
+      const userUrlSearch = new URLSearchParams(location.hash.split("?")[1] || "").get("search");
+      if (userUrlSearch) {
+        $("#user-search").value = userUrlSearch;
+        API.get(`/auth/users?search=${encodeURIComponent(userUrlSearch)}`).then(u => renderUserRows(u));
+      }
 
       $("#btn-new-user").addEventListener("click", () => {
         const pw = generateTempPassword();
@@ -807,7 +841,11 @@
     clearTimeout(globalSearchTimeout);
     const q = e.target.value.trim();
     if (!q) return;
-    globalSearchTimeout = setTimeout(() => { window.location.hash = `#/patients?search=${encodeURIComponent(q)}`; }, 400);
+    globalSearchTimeout = setTimeout(() => {
+      const page = location.hash.replace("#/", "").split("?")[0].split("/")[0] || "dashboard";
+      const target = (page === "cases") ? "cases" : (page === "users") ? "users" : "patients";
+      window.location.hash = `#/${target}?search=${encodeURIComponent(q)}`;
+    }, 400);
   });
 
   // ── Theme Toggle ───────────────────────────────────────────────────────

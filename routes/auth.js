@@ -77,7 +77,14 @@ router.get("/me", requireAuth, (req, res) => {
 
 router.get("/users", requireAuth, requireRole("admin", "superadmin"), (req, res) => {
   const db = getDb();
-  const users = db.prepare("SELECT id, username, full_name, role, created_at FROM users WHERE username != 'superadmin' ORDER BY created_at").all();
+  const { search } = req.query;
+  let users;
+  if (search) {
+    const q = `%${search}%`;
+    users = db.prepare("SELECT id, username, full_name, role, created_at FROM users WHERE username != 'superadmin' AND (username LIKE ? OR full_name LIKE ?) ORDER BY created_at").all(q, q);
+  } else {
+    users = db.prepare("SELECT id, username, full_name, role, created_at FROM users WHERE username != 'superadmin' ORDER BY created_at").all();
+  }
   res.json(users);
 });
 

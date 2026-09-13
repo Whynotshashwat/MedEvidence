@@ -42,7 +42,7 @@ function mockModel(vitals) {
 // List cases with filters
 router.get("/", (req, res) => {
   const db = getDb();
-  const { patient_id, status } = req.query;
+  const { patient_id, status, search } = req.query;
   const page = Math.max(1, Number(req.query.page) || 1);
   const limit = Math.min(100, Math.max(1, Number(req.query.limit) || 20));
   const offset = (page - 1) * limit;
@@ -51,6 +51,11 @@ router.get("/", (req, res) => {
 
   if (patient_id) { conditions.push("c.patient_id = ?"); params.push(patient_id); }
   if (status) { conditions.push("c.status = ?"); params.push(status); }
+  if (search) {
+    const q = `%${search}%`;
+    conditions.push("(c.case_number LIKE ? OR p.first_name LIKE ? OR p.last_name LIKE ? OR p.mrn LIKE ?)");
+    params.push(q, q, q, q);
+  }
 
   const where = conditions.length ? "WHERE " + conditions.join(" AND ") : "";
 
@@ -68,7 +73,7 @@ router.get("/", (req, res) => {
     ORDER BY c.created_at DESC LIMIT ? OFFSET ?
   `).all(...params, limit, offset);
 
-  const total = db.prepare(`SELECT COUNT(*) as c FROM cases c ${where}`).get(...params).c;
+  const total = db.prepare(`SELECT COUNT(*) as c FROM cases c LEFT JOIN patients p ON c.patient_id = p.id ${where}`).get(...params).c;
   res.json({ cases, total, page, limit });
 });
 
