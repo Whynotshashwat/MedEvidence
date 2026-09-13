@@ -47,8 +47,8 @@ a:hover{text-decoration:underline}
 .field{margin-bottom:1.25rem}
 .field label{display:block;font-size:.75rem;font-weight:600;color:var(--fg2);margin-bottom:.45rem;text-transform:uppercase;letter-spacing:.05em}
 .input-icon-wrap{position:relative}
-.input-icon-wrap i{position:absolute;left:.85rem;top:50%;transform:translateY(-50%);color:var(--fg4);font-size:.82rem;pointer-events:none}
-.input-icon-wrap input{padding-left:2.4rem}
+.input-icon-wrap i{position:absolute;left:.85rem;top:50%;transform:translateY(-50%);color:var(--fg4);font-size:.82rem;pointer-events:none;z-index:1}
+.input-icon-wrap input{padding-left:2.4rem !important}
 .field input,.field select,.field textarea{width:100%;padding:.7rem .9rem;background:var(--bg);border:1.5px solid var(--border);border-radius:var(--radius);color:var(--fg);font-size:.88rem;font-family:inherit;outline:none;transition:all .2s}
 .field input:focus,.field select:focus,.field textarea:focus{border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-50);background:var(--bg2)}
 .field input::placeholder{color:var(--fg4)}
