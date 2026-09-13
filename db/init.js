@@ -10,7 +10,7 @@ import { randomBytes } from "crypto";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-const DB_PATH = process.env.DB_PATH || join(__dirname, "medevidence.db");
+const DB_PATH = process.env.DB_PATH || (process.env.VERCEL ? "/tmp/medevidence.db" : join(__dirname, "medevidence.db"));
 
 let db;
 

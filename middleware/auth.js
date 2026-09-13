@@ -6,7 +6,7 @@ import { fileURLToPath } from "url";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-const SECRET_FILE = join(__dirname, "..", ".jwt-secret");
+const SECRET_FILE = process.env.VERCEL ? "/tmp/.jwt-secret" : join(__dirname, "..", ".jwt-secret");
 
 function getSecret() {
   if (process.env.JWT_SECRET) return process.env.JWT_SECRET;
