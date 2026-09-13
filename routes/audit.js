@@ -4,7 +4,7 @@ import { requireAuth, requireRole } from "../middleware/auth.js";
 
 const router = Router();
 router.use(requireAuth);
-router.use(requireRole("admin", "auditor"));
+router.use(requireRole("admin", "superadmin", "auditor"));
 
 router.get("/", (req, res) => {
   const db = getDb();

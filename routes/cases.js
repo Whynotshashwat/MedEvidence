@@ -227,7 +227,7 @@ router.post("/:id/verify", async (req, res) => {
 });
 
 // Tamper case — simulate post-hoc record modification
-router.post("/:id/tamper", requireRole("admin", "auditor"), (req, res) => {
+router.post("/:id/tamper", requireRole("admin", "superadmin", "auditor"), (req, res) => {
   const db = getDb();
   const caseData = db.prepare("SELECT * FROM cases WHERE id = ?").get(req.params.id);
   if (!caseData) return res.status(404).json({ error: "Case not found" });

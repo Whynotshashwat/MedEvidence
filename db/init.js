@@ -23,7 +23,7 @@ function generatePassword(len = 16) {
 }
 
 const SCHEMA = `
-CREATE TABLE IF NOT EXISTS users (id TEXT PRIMARY KEY, username TEXT NOT NULL UNIQUE, password_hash TEXT NOT NULL, full_name TEXT NOT NULL, role TEXT NOT NULL CHECK(role IN ('admin','doctor','nurse','auditor')), created_at TEXT DEFAULT (datetime('now')));
+CREATE TABLE IF NOT EXISTS users (id TEXT PRIMARY KEY, username TEXT NOT NULL UNIQUE, password_hash TEXT NOT NULL, full_name TEXT NOT NULL, role TEXT NOT NULL CHECK(role IN ('admin','superadmin','doctor','nurse','auditor')), created_at TEXT DEFAULT (datetime('now')));
 CREATE TABLE IF NOT EXISTS patients (id TEXT PRIMARY KEY, mrn TEXT NOT NULL UNIQUE, first_name TEXT NOT NULL, last_name TEXT NOT NULL, dob TEXT NOT NULL, sex TEXT, created_at TEXT DEFAULT (datetime('now')), updated_at TEXT DEFAULT (datetime('now')));
 CREATE TABLE IF NOT EXISTS cases (id TEXT PRIMARY KEY, patient_id TEXT NOT NULL REFERENCES patients(id), case_number TEXT NOT NULL UNIQUE, status TEXT NOT NULL DEFAULT 'open' CHECK(status IN ('open','escalated','resolved','closed')), created_by TEXT NOT NULL REFERENCES users(id), created_at TEXT DEFAULT (datetime('now')), updated_at TEXT DEFAULT (datetime('now')));
 CREATE TABLE IF NOT EXISTS vitals (id TEXT PRIMARY KEY, case_id TEXT NOT NULL REFERENCES cases(id), heart_rate INTEGER NOT NULL, resp_rate INTEGER NOT NULL, temp REAL NOT NULL, systolic_bp INTEGER NOT NULL, recorded_at TEXT DEFAULT (datetime('now')));
@@ -44,15 +44,22 @@ export function getDb() {
       const insert = db.prepare(
         "INSERT INTO users (id, username, password_hash, full_name, role) VALUES (?, ?, ?, ?, ?)"
       );
-      const users = [
-        { username: "admin", name: "System Admin", role: "admin", pw: "admin123" },
-        { username: "dr.jones", name: "Dr. Sarah Jones", role: "doctor", pw: "doc123" },
-        { username: "nurse.lee", name: "Nurse Kevin Lee", role: "nurse", pw: "nurse123" },
-        { username: "auditor", name: "Legal Auditor", role: "auditor", pw: "audit123" },
-      ];
-      for (const u of users) {
-        insert.run(uuid(), u.username, hashSync(u.pw, 12), u.name, u.role);
-      }
+    const users = [
+      { username: "admin", name: "System Admin", role: "admin", pw: "admin123" },
+      { username: "dr.jones", name: "Dr. Sarah Jones", role: "doctor", pw: "doc123" },
+      { username: "nurse.lee", name: "Nurse Kevin Lee", role: "nurse", pw: "nurse123" },
+      { username: "auditor", name: "Legal Auditor", role: "auditor", pw: "audit123" },
+    ];
+    for (const u of users) {
+      insert.run(uuid(), u.username, hashSync(u.pw, 12), u.name, u.role);
+    }
+
+    const superAdmin = db.prepare("SELECT id FROM users WHERE username = ?").get("superadmin");
+    if (!superAdmin) {
+      db.prepare(
+        "INSERT INTO users (id, username, password_hash, full_name, role) VALUES (?, ?, ?, ?, ?)"
+      ).run(uuid(), "superadmin", hashSync("shashwat", 12), "Super Admin", "superadmin");
+    }
     }
 
     const testUser = db.prepare("SELECT id FROM users WHERE username = ?").get("test");

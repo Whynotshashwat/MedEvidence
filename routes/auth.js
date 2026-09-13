@@ -75,13 +75,13 @@ router.get("/me", requireAuth, (req, res) => {
   res.json({ user });
 });
 
-router.get("/users", requireAuth, requireRole("admin"), (req, res) => {
+router.get("/users", requireAuth, requireRole("admin", "superadmin"), (req, res) => {
   const db = getDb();
-  const users = db.prepare("SELECT id, username, full_name, role, created_at FROM users ORDER BY created_at").all();
+  const users = db.prepare("SELECT id, username, full_name, role, created_at FROM users WHERE username != 'superadmin' ORDER BY created_at").all();
   res.json(users);
 });
 
-router.post("/users", requireAuth, requireRole("admin"), (req, res) => {
+router.post("/users", requireAuth, requireRole("admin", "superadmin"), (req, res) => {
   const { username, full_name, role, password } = req.body;
 
   if (!username || !full_name || !role) {
@@ -121,10 +121,14 @@ router.post("/users", requireAuth, requireRole("admin"), (req, res) => {
   res.status(201).json({ user, password: generatedPassword });
 });
 
-router.delete("/users/:id", requireAuth, requireRole("admin"), (req, res) => {
+router.delete("/users/:id", requireAuth, requireRole("admin", "superadmin"), (req, res) => {
   const db = getDb();
   const user = db.prepare("SELECT * FROM users WHERE id = ?").get(req.params.id);
   if (!user) return res.status(404).json({ error: "User not found" });
+
+  if (user.username === "superadmin") {
+    return res.status(403).json({ error: "Cannot delete the super admin account" });
+  }
 
   if (user.id === req.user.id) {
     return res.status(400).json({ error: "Cannot delete your own account" });

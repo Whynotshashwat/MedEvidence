@@ -45,7 +45,7 @@ router.get("/:id", (req, res) => {
 });
 
 // Create patient
-router.post("/", requireRole("admin", "doctor", "nurse"), (req, res) => {
+router.post("/", requireRole("admin", "superadmin", "doctor", "nurse"), (req, res) => {
   const { mrn, first_name, last_name, dob, sex } = req.body;
   if (!mrn || !first_name || !last_name || !dob) {
     return res.status(400).json({ error: "mrn, first_name, last_name, dob are required" });
@@ -70,7 +70,7 @@ router.post("/", requireRole("admin", "doctor", "nurse"), (req, res) => {
 });
 
 // Update patient
-router.put("/:id", requireRole("admin", "doctor", "nurse"), (req, res) => {
+router.put("/:id", requireRole("admin", "superadmin", "doctor", "nurse"), (req, res) => {
   const db = getDb();
   const existing = db.prepare("SELECT * FROM patients WHERE id = ?").get(req.params.id);
   if (!existing) return res.status(404).json({ error: "Patient not found" });
@@ -92,7 +92,7 @@ router.put("/:id", requireRole("admin", "doctor", "nurse"), (req, res) => {
 });
 
 // Delete patient
-router.delete("/:id", requireRole("admin", "doctor", "nurse"), (req, res) => {
+router.delete("/:id", requireRole("admin", "superadmin", "doctor", "nurse"), (req, res) => {
   const db = getDb();
   const existing = db.prepare("SELECT * FROM patients WHERE id = ?").get(req.params.id);
   if (!existing) return res.status(404).json({ error: "Patient not found" });
