@@ -1,18 +1,33 @@
 import jwt from "jsonwebtoken";
 import { randomBytes } from "crypto";
+import { readFileSync, writeFileSync, existsSync } from "fs";
+import { join, dirname } from "path";
+import { fileURLToPath } from "url";
 
-const JWT_SECRET = process.env.JWT_SECRET;
-if (!JWT_SECRET) {
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const SECRET_FILE = join(__dirname, "..", ".jwt-secret");
+
+function getSecret() {
+  if (process.env.JWT_SECRET) return process.env.JWT_SECRET;
+
   if (process.env.NODE_ENV === "production") {
     console.error("[FATAL] JWT_SECRET environment variable is required in production");
     process.exit(1);
   }
-  // Dev fallback: generate random secret, warn once
-  const devSecret = randomBytes(32).toString("hex");
-  console.warn("[WARN] JWT_SECRET not set. Using random dev secret. Tokens will NOT survive restarts.");
-  var _JWT_SECRET = devSecret;
+
+  // Persist dev secret across restarts
+  if (existsSync(SECRET_FILE)) {
+    return readFileSync(SECRET_FILE, "utf8").trim();
+  }
+
+  const secret = randomBytes(32).toString("hex");
+  writeFileSync(SECRET_FILE, secret, "utf8");
+  console.log("[auth] Generated and saved dev JWT secret to .jwt-secret");
+  return secret;
 }
-const SECRET = JWT_SECRET || _JWT_SECRET;
+
+const SECRET = getSecret();
 const JWT_EXPIRES = process.env.JWT_EXPIRES || "24h";
 
 export function signToken(user) {
