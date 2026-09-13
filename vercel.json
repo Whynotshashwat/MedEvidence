@@ -1,6 +1,7 @@
 {
+  "buildCommand": "cp -r public/* .",
   "functions": {
-    "api/index.js": {
+    "api/[...slug].js": {
       "maxDuration": 10
     }
   }
