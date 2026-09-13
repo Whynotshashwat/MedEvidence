@@ -26,7 +26,7 @@ a:hover{text-decoration:underline}
 .shape-2{width:400px;height:400px;bottom:-150px;left:-100px}
 .shape-3{width:200px;height:200px;top:50%;left:40%;background:rgba(255,255,255,.03)}
 .login-brand{position:relative;z-index:1;margin-bottom:3.5rem}
-.login-logo{width:72px;height:72px;background:rgba(255,255,255,.12);border-radius:20px;display:flex;align-items:center;justify-content:center;font-size:2rem;margin-bottom:1.75rem;backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.1)}
+.login-logo{width:72px;height:72px;background:rgba(255,255,255,.12);border-radius:20px;display:flex;align-items:center;justify-content:center;margin-bottom:1.75rem;backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.1)}.login-logo img{width:56px;height:56px}
 .login-brand h1{font-size:2.5rem;font-weight:800;letter-spacing:-0.03em;margin-bottom:.4rem}
 .login-tagline{font-size:1.05rem;opacity:.75;font-weight:400}
 .login-features{position:relative;z-index:1;display:flex;flex-direction:column;gap:1.25rem}
@@ -81,7 +81,7 @@ a:hover{text-decoration:underline}
 .header-left{display:flex;align-items:center;gap:.75rem}
 .sidebar-toggle{display:none;background:none;border:none;color:var(--fg3);font-size:1.1rem;cursor:pointer;padding:.4rem;border-radius:var(--radius)}
 .sidebar-toggle:hover{background:var(--bg3);color:var(--fg)}
-.logo-mark{width:38px;height:38px;background:linear-gradient(135deg,var(--primary),var(--primary-dark));border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:.95rem;box-shadow:0 2px 8px rgba(13,148,136,.25)}
+.logo-mark{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(13,148,136,.25)}.logo-mark img{width:38px;height:38px;border-radius:10px}
 .brand-text{font-size:1.1rem;font-weight:700;color:var(--fg);letter-spacing:-.02em}
 .header-center{flex:1;max-width:420px;margin:0 2rem}
 .search-bar{position:relative;display:flex;align-items:center}
