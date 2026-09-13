@@ -1,4 +1,5 @@
 FROM node:20-alpine
+RUN apk add --no-cache python3 make g++
 RUN addgroup -S app && adduser -S app -G app
 WORKDIR /app
 COPY package*.json ./

@@ -1,13 +1,16 @@
 import Database from "better-sqlite3";
-import { existsSync, mkdirSync } from "fs";
+import { readFileSync } from "fs";
+import { join, dirname } from "path";
+import { fileURLToPath } from "url";
 import bcryptjs from "bcryptjs";
 const { hashSync } = bcryptjs;
 import { v4 as uuid } from "uuid";
 import { randomBytes } from "crypto";
 
-const isVercel = !!process.env.VERCEL;
-const DB_DIR = isVercel ? "/tmp" : (process.env.DB_PATH ? require("path").dirname(process.env.DB_PATH) : ".");
-const DB_PATH = process.env.DB_PATH || (isVercel ? "/tmp/medevidence.db" : "./db/medevidence.db");
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+const DB_PATH = process.env.DB_PATH || join(__dirname, "medevidence.db");
 
 let db;
 
@@ -31,9 +34,6 @@ CREATE TABLE IF NOT EXISTS audit_log (id INTEGER PRIMARY KEY AUTOINCREMENT, user
 
 export function getDb() {
   if (!db) {
-    if (isVercel && !existsSync("/tmp")) {
-      mkdirSync("/tmp", { recursive: true });
-    }
     db = new Database(DB_PATH);
     db.pragma("journal_mode = WAL");
     db.pragma("foreign_keys = ON");
