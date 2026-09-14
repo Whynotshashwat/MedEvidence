@@ -48,8 +48,9 @@ app.use((req, _res, next) => {
   next();
 });
 
-// Static files
-app.use(express.static(join(__dirname, "public")));
+// Static files — serve Vite build in production, legacy public/ in dev
+const staticDir = isProduction ? join(__dirname, "frontend", "dist") : join(__dirname, "public");
+app.use(express.static(staticDir));
 
 // API routes
 import authRoutes from "./routes/auth.js";
@@ -101,7 +102,10 @@ app.get("/{*splat}", (req, res) => {
   if (req.path.startsWith("/api/")) {
     return res.status(404).json({ error: "Not found" });
   }
-  res.sendFile(join(__dirname, "public", "index.html"));
+  const indexPath = isProduction
+    ? join(__dirname, "frontend", "dist", "index.html")
+    : join(__dirname, "public", "index.html");
+  res.sendFile(indexPath);
 });
 
 // Error handler — never leak internal details

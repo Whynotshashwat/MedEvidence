@@ -1,0 +1,234 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 220 25% 97%;
+    --foreground: 230 35% 8%;
+    --card: 0 0% 100%;
+    --card-foreground: 230 35% 8%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 230 35% 8%;
+    --primary: 174 83% 42%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 220 20% 94%;
+    --secondary-foreground: 230 35% 12%;
+    --muted: 220 20% 94%;
+    --muted-foreground: 222 12% 45%;
+    --accent: 220 20% 94%;
+    --accent-foreground: 230 35% 12%;
+    --destructive: 0 80% 55%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 220 18% 88%;
+    --input: 220 18% 88%;
+    --ring: 174 83% 42%;
+    --radius: 1rem;
+  }
+
+  .dark {
+    --background: 232 45% 4%;
+    --foreground: 210 35% 95%;
+    --card: 230 38% 7.5%;
+    --card-foreground: 210 35% 95%;
+    --popover: 230 38% 7.5%;
+    --popover-foreground: 210 35% 95%;
+    --primary: 172 85% 52%;
+    --primary-foreground: 232 45% 6%;
+    --secondary: 230 30% 13%;
+    --secondary-foreground: 210 35% 95%;
+    --muted: 230 30% 13%;
+    --muted-foreground: 218 15% 60%;
+    --accent: 230 30% 13%;
+    --accent-foreground: 210 35% 95%;
+    --destructive: 0 85% 62%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 230 28% 15%;
+    --input: 230 28% 15%;
+    --ring: 172 85% 52%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+@layer utilities {
+  /* Gradient mesh page backdrop */
+  .app-mesh {
+    position: relative;
+  }
+  .app-mesh::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background:
+      radial-gradient(600px 400px at 12% -5%, hsl(172 85% 52% / 0.09), transparent 60%),
+      radial-gradient(700px 500px at 95% 10%, hsl(255 85% 60% / 0.07), transparent 60%),
+      radial-gradient(600px 600px at 50% 110%, hsl(200 90% 55% / 0.06), transparent 60%);
+  }
+  .dark .app-mesh::before {
+    background:
+      radial-gradient(700px 450px at 12% -5%, hsl(172 85% 45% / 0.14), transparent 60%),
+      radial-gradient(800px 550px at 95% 8%, hsl(258 90% 62% / 0.11), transparent 60%),
+      radial-gradient(700px 650px at 50% 115%, hsl(200 95% 55% / 0.09), transparent 60%);
+  }
+
+  .glass {
+    @apply bg-card/70 backdrop-blur-xl;
+  }
+
+  .text-gradient {
+    @apply bg-gradient-to-r from-teal-400 via-cyan-400 to-violet-400 bg-clip-text text-transparent;
+  }
+  :root .text-gradient {
+    @apply from-teal-600 via-cyan-600 to-violet-600;
+  }
+
+  .glow-primary {
+    box-shadow: 0 0 0 1px hsl(172 85% 52% / 0.25), 0 8px 30px -6px hsl(172 85% 45% / 0.35);
+  }
+
+  .card-hover {
+    @apply transition-all duration-300;
+  }
+  .card-hover:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 14px 40px -12px hsl(232 45% 3% / 0.35);
+  }
+  .dark .card-hover:hover {
+    box-shadow: 0 14px 44px -10px hsl(172 85% 45% / 0.18);
+  }
+
+  @keyframes fade-up {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  .animate-fade-up {
+    animation: fade-up 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  .animate-fade-up-1 { animation-delay: 0.05s; }
+  .animate-fade-up-2 { animation-delay: 0.1s; }
+  .animate-fade-up-3 { animation-delay: 0.15s; }
+  .animate-fade-up-4 { animation-delay: 0.2s; }
+
+  @keyframes float-pulse {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 1; }
+  }
+  .animate-float-pulse {
+    animation: float-pulse 3s ease-in-out infinite;
+  }
+
+  /* Spotlight card — mouse-tracking glow */
+  .spotlight-card {
+    position: relative;
+    overflow: hidden;
+  }
+  .spotlight-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    background: radial-gradient(
+      320px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+      hsl(172 85% 52% / 0.08),
+      transparent 65%
+    );
+  }
+  .spotlight-card:hover::before {
+    opacity: 1;
+  }
+  .spotlight-card > * {
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Gradient border via mask trick */
+  .gradient-border {
+    position: relative;
+    border: none;
+  }
+  .gradient-border::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(135deg, hsl(172 85% 52% / 0.5), hsl(258 90% 62% / 0.3), transparent 70%);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+  }
+
+  /* Shimmer skeleton */
+  .shimmer {
+    position: relative;
+    overflow: hidden;
+  }
+  .shimmer::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background: linear-gradient(90deg, transparent, hsl(0 0% 100% / 0.06), transparent);
+    animation: shimmer-sweep 1.6s infinite;
+  }
+  :root .shimmer::after {
+    background: linear-gradient(90deg, transparent, hsl(0 0% 0% / 0.05), transparent);
+  }
+  @keyframes shimmer-sweep {
+    100% { transform: translateX(100%); }
+  }
+
+  /* Glitch shake for tamper verdict */
+  @keyframes glitch-shake {
+    0%, 100% { transform: translateX(0); }
+    10% { transform: translateX(-3px) skewX(-1deg); }
+    20% { transform: translateX(3px) skewX(1deg); }
+    30% { transform: translateX(-2px); }
+    40% { transform: translateX(2px); }
+    50% { transform: translateX(-1px); }
+    60% { transform: translateX(1px); }
+    70% { transform: translateX(0); }
+  }
+  .animate-glitch {
+    animation: glitch-shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+  }
+
+  /* ECG line draw loop */
+  @keyframes ecg-draw {
+    0% { stroke-dashoffset: 200; }
+    100% { stroke-dashoffset: 0; }
+  }
+  .ecg-line {
+    stroke-dasharray: 200;
+    animation: ecg-draw 2.4s linear infinite;
+  }
+
+  /* Verdict ring expand */
+  @keyframes ring-expand {
+    from { transform: scale(0.6); opacity: 0.8; }
+    to { transform: scale(1.6); opacity: 0; }
+  }
+  .animate-ring-expand {
+    animation: ring-expand 1s ease-out 2;
+  }
+}
